@@ -62,7 +62,7 @@ class TemplateFiller:
         self.template_combo.pack(fill=tk.X, pady=5)
 
         ttk.Label(self.left_frame, text="Select User:").pack(anchor=tk.W)
-        self.user_listbox = tk.Listbox(self.left_frame, width=40, height=10)
+        self.user_listbox = tk.Listbox(self.left_frame, width=40, height=10, selectmode=tk.SINGLE)
         self.user_listbox.pack(fill=tk.BOTH, expand=True, pady=5)
         self.user_listbox.bind("<<ListboxSelect>>", self.handleSelectClient)
         
@@ -186,7 +186,6 @@ class TemplateFiller:
     def handleSelectClient(self, event=None):
         selection = self.user_listbox.curselection()
         if not selection:
-            messagebox.showwarning("Warning", "Please select a user")
             return
         
         self.selected_user = self.users[selection[0]]
@@ -223,6 +222,9 @@ class TemplateFiller:
         
         if not template_name or template_name not in self.templates:
             messagebox.showwarning("Warning", "Please select a valid template")
+            return
+        
+        if not self.selected_user:
             return
         
         template = self.templates[template_name]
