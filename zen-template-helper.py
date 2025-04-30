@@ -66,9 +66,6 @@ class TemplateFiller:
         self.user_listbox.pack(fill=tk.BOTH, expand=True, pady=5)
         self.user_listbox.bind("<<ListboxSelect>>", self.handleSelectClient)
         
-        # ttk.Label(self.right_frame, text="Generated Text:").pack(anchor=tk.W)
-        # self.result_text = tk.Text(self.right_frame, wrap=tk.WORD, width=40, height=15)
-        # self.result_text.pack(fill=tk.BOTH, expand=True, pady=5)
         ttk.Label(self.right_frame, text="Select Services:").pack(anchor=tk.W)
         # Layout
         self.services_frame = ttk.Frame(self.right_frame)
@@ -107,6 +104,25 @@ class TemplateFiller:
         self.hour5_var = tk.StringVar()
         self.hour5_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour5_var)
         self.hour5_combo.pack(pady=5)
+        self.hour1_combo['values'] = list(self.time_intervals)
+        self.hour2_combo['values'] = list(self.time_intervals)
+        self.hour3_combo['values'] = list(self.time_intervals)
+        self.hour4_combo['values'] = list(self.time_intervals)
+        self.hour5_combo['values'] = list(self.time_intervals)
+        self.service1_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(1, event))
+        self.service2_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(2, event))
+        self.service3_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(3, event))
+        self.service4_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(4, event))
+        self.service5_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(5, event))
+        self.hour1_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(1, event))
+        self.hour2_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(2, event))
+        self.hour3_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(3, event))
+        self.hour4_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(4, event))
+        self.hour5_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(5, event))
+
+        ttk.Label(self.right_frame, text="Generated Text:").pack(anchor=tk.W)
+        self.result_text = tk.Text(self.right_frame, wrap=tk.WORD, width=40, height=15)
+        self.result_text.pack(fill=tk.BOTH, expand=True, pady=5)
         
         ttk.Button(self.right_frame, text="Copy to Clipboard", command=self.copy_to_clipboard).pack(pady=5, fill=tk.BOTH, expand=True)
     
@@ -159,12 +175,13 @@ class TemplateFiller:
     def load_services(self, filename):
         with open(filename, 'r', encoding='utf-8') as file:
             self.services = json.load(file).get('services')
-        
-        self.service1_combo['values'] = list(self.services)
-        self.service2_combo['values'] = list(self.services)
-        self.service3_combo['values'] = list(self.services)
-        self.service4_combo['values'] = list(self.services)
-        self.service5_combo['values'] = list(self.services)
+
+        servicesTitles = [service['title'] for service in self.services]
+        self.service1_combo['values'] = list(servicesTitles)
+        self.service2_combo['values'] = list(servicesTitles)
+        self.service3_combo['values'] = list(servicesTitles)
+        self.service4_combo['values'] = list(servicesTitles)
+        self.service5_combo['values'] = list(servicesTitles)
     
     def handleSelectClient(self, event=None):
         selection = self.user_listbox.curselection()
@@ -174,6 +191,31 @@ class TemplateFiller:
         
         self.selected_user = self.users[selection[0]]
         self.copy_phone_to_clipboard()
+        self.generate_text()
+
+    def handleRefreshTimes(self, index, event):
+        for i in range(index, 5):
+            if i == 1:
+                selected_service = next((s for s in self.services if s["title"] == self.service1_var.get()), None)
+                if selected_service and self.hour1_var.get() != "":
+                    duration = selected_service.get("duration", 0)
+                    self.hour2_var.set(self.add_minutes_to_time(self.hour1_var.get(), duration))
+            elif i == 2:
+                selected_service = next((s for s in self.services if s["title"] == self.service2_var.get()), None)
+                if selected_service and self.hour2_var.get() != "":
+                    duration = selected_service.get("duration", 0)
+                    self.hour3_var.set(self.add_minutes_to_time(self.hour2_var.get(), duration))
+            elif i == 3:
+                selected_service = next((s for s in self.services if s["title"] == self.service3_var.get()), None)
+                if selected_service and self.hour3_var.get() != "":
+                    duration = selected_service.get("duration", 0)
+                    self.hour4_var.set(self.add_minutes_to_time(self.hour3_var.get(), duration))
+            elif i == 4:
+                selected_service = next((s for s in self.services if s["title"] == self.service4_var.get()), None)
+                if selected_service and self.hour4_var.get() != "":
+                    duration = selected_service.get("duration", 0)
+                    self.hour5_var.set(self.add_minutes_to_time(self.hour4_var.get(), duration))
+        self.generate_text()
 
     def generate_text(self):
         
@@ -184,14 +226,17 @@ class TemplateFiller:
             return
         
         template = self.templates[template_name]
+
+        selected_services = self.formatSelectedServices()
         try:
-            result = template.format(FirstName=self.selected_user['First Name'], Location=self.selected_user['Location'])
+            result = template.format(FirstName=self.selected_user['First Name'], Location=self.selected_user['Location'], Services=selected_services)
             self.result_text.delete(1.0, tk.END)
             self.result_text.insert(1.0, result)
         except KeyError as e:
             messagebox.showerror("Error", f"Template field {e} not found in user data")
     
     def copy_to_clipboard(self):
+        # self.generate_text()
         text = self.result_text.get(1.0, tk.END).strip()
         self.root.clipboard_clear()
         self.root.clipboard_append(text)
@@ -200,7 +245,18 @@ class TemplateFiller:
         self.root.clipboard_clear()
         self.root.clipboard_append(self.selected_user['Primary Phone'])
 
-    def add_minutes_to_time(time_str, minutes):
+    def formatSelectedServices(self):
+        selected_services = ""
+        for i in range(1, 6):
+            service_var = getattr(self, f'service{i}_var')
+            hour_var = getattr(self, f'hour{i}_var')
+            service_name = service_var.get()
+            hour_time = hour_var.get()
+            if service_name and hour_time:
+                selected_services = selected_services + f"\n🕒 {hour_time} - {service_name}"
+        return selected_services
+
+    def add_minutes_to_time(self, time_str, minutes):
         try:
             # Parse the time string into a datetime object
             time_obj = datetime.strptime(time_str, "%H:%M")

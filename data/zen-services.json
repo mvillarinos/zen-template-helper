@@ -1,3 +1,8 @@
 {
-	"services": ["Facial", "Massage", "Body", "Manipedi"]
+	"services": [
+		{ "title": "Facial", "duration": 30 },
+		{ "title": "Massage", "duration": 60 },
+		{ "title": "Body", "duration": 90 },
+		{ "title": "Manipedi", "duration": 30 }
+	]
 }
