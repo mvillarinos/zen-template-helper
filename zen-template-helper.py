@@ -58,12 +58,18 @@ class TemplateFiller(tk.Tk):
 
         ttk.Button(self.header, text="Change Theme", command=self.change_theme).pack(side=tk.RIGHT)
         
-        # Left and right frames
-        self.left_frame = ttk.Frame(self.main_frame)
+        # Left and right frames with resizable layout
+        self.resizable_frame = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)
+        self.resizable_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.left_frame = ttk.Frame(self.resizable_frame)
         self.left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        self.right_frame = ttk.Frame(self.main_frame)
+        self.right_frame = ttk.Frame(self.resizable_frame)
         self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=[5, 0])
+
+        self.resizable_frame.add(self.left_frame, weight=3)
+        self.resizable_frame.add(self.right_frame, weight=1)
         
         # Template group
         self.template_group = ttk.Frame(self.left_frame)
