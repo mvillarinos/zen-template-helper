@@ -3,6 +3,9 @@ from tkinter import ttk, messagebox, filedialog
 from datetime import datetime, timedelta
 import csv
 import json
+import os
+import subprocess
+import sys
 
 class TemplateFiller(tk.Tk):
     def __init__(self, root):
@@ -57,6 +60,8 @@ class TemplateFiller(tk.Tk):
         ttk.Button(self.header, text="Load CSV Data", command=self.load_csv_dialog).pack(side=tk.LEFT) 
 
         ttk.Button(self.header, text="Change Theme", command=self.change_theme).pack(side=tk.RIGHT)
+
+        ttk.Button(self.header, text="Get update", command=self.get_update).pack(side=tk.RIGHT, padx=5)
         
         # Left and right frames with resizable layout
         self.resizable_frame = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)
@@ -294,6 +299,24 @@ class TemplateFiller(tk.Tk):
     def copy_phone_to_clipboard(self):
         self.root.clipboard_clear()
         self.root.clipboard_append(self.selected_user['Primary Phone'])
+    
+    def get_update(self):
+        try:
+            # Get the current directory of the script
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            current_file = os.path.abspath(__file__)
+            
+            # Run the "git pull" command in the current directory using Git Bash
+            subprocess.run(["git", "pull"], cwd=current_dir, check=True, shell=True)
+            
+            # Relaunch the application
+            python = sys.executable
+            os.execl(python, python, f'"{current_file}"', *sys.argv[1:])
+        except subprocess.CalledProcessError as e:
+            messagebox.showerror("Error", f"Failed to update repository: {e}")
+        except Exception as e:
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}")
+
 
     def formatSelectedServices(self):
         selected_services = ""
