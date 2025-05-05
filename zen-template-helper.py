@@ -4,19 +4,25 @@ from datetime import datetime, timedelta
 import csv
 import json
 
-class TemplateFiller:
+class TemplateFiller(tk.Tk):
     def __init__(self, root):
         self.root = root
         self.root.title("Template Filler")
-        self.root.geometry("800x600")
+        self.root.geometry("800x720")
         
         self.users = []
         self.templates = {}
         self.services = []
         self.time_intervals = [
-            "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-            "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
-            "15:00", "15:30", "16:00", "16:30", "17:00"
+            "09:00", "09:15", "09:30", "09:45",
+            "10:00", "10:15", "10:30", "10:45",
+            "11:00", "11:15", "11:30", "11:45",
+            "12:00", "12:15", "12:30", "12:45",
+            "13:00", "13:15", "13:30", "13:45",
+            "14:00", "14:15", "14:30", "14:45",
+            "15:00", "15:15", "15:30", "15:45",
+            "16:00", "16:15", "16:30", "16:45",
+            "17:00"
         ]
 
         self.selected_user = None
@@ -26,7 +32,9 @@ class TemplateFiller:
         # Automatically load templates after widgets are created
         try:
             self.load_templates("data/zen-templates.json")
-            self.load_templates_button.configure(style="Success.TButton")
+            # self.load_templates_button.configure(style="Success.TButton")
+            self.load_templates_button.configure(text="⟳")
+
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load templates on start: {str(e)}")
             self.load_templates_button.configure(style="Default.TButton")
@@ -38,32 +46,39 @@ class TemplateFiller:
             messagebox.showerror("Error", f"Failed to load templates on start: {str(e)}")
         
     def create_widgets(self):
-        self.top_frame = ttk.Frame(self.root, padding="10")
-        self.top_frame.pack(fill=tk.X)
-        
+        # Main frame
         self.main_frame = ttk.Frame(self.root, padding="10")
         self.main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Header
+        self.header = ttk.Frame(self.main_frame)
+        self.header.pack(fill=tk.X, pady=[0,5])       
+
+        ttk.Button(self.header, text="Load CSV Data", command=self.load_csv_dialog).pack(side=tk.LEFT) 
+
+        ttk.Button(self.header, text="Change Theme", command=self.change_theme).pack(side=tk.RIGHT)
         
-        # Create the "Load Templates" button and store it as an instance variable
-        self.load_templates_button = ttk.Button(self.top_frame, text="Load Templates", command=self.load_templates_dialog)
-        self.load_templates_button.pack(side=tk.LEFT, padx=5)
-        
-        ttk.Button(self.top_frame, text="Load CSV Data", command=self.load_csv_dialog).pack(side=tk.LEFT, padx=5)
-        
+        # Left and right frames
         self.left_frame = ttk.Frame(self.main_frame)
         self.left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         self.right_frame = ttk.Frame(self.main_frame)
-        self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=[5, 0])
         
-        ttk.Label(self.left_frame, text="Select Template:").pack(anchor=tk.W)
+        # Template group
+        self.template_group = ttk.Frame(self.left_frame)
+        self.template_group.pack(fill=tk.X)
+
+        ttk.Label(self.template_group, text="Select Template:").pack(side=tk.TOP, fill=tk.X)
         self.template_var = tk.StringVar()
-        self.template_combo = ttk.Combobox(self.left_frame, textvariable=self.template_var)
-        self.template_combo.pack(fill=tk.X, pady=5)
+        self.template_combo = ttk.Combobox(self.template_group, textvariable=self.template_var, state="readonly")
+        self.template_combo.pack(side=tk.LEFT, fill=tk.X, pady=5, expand=True)
+        self.load_templates_button = ttk.Button(self.template_group, text="Load Templates", command=self.load_templates_dialog)
+        self.load_templates_button.pack(side=tk.RIGHT, padx=[5, 0])
 
         ttk.Label(self.left_frame, text="Select User:").pack(anchor=tk.W)
         self.user_listbox = tk.Listbox(self.left_frame, width=40, height=10, selectmode=tk.SINGLE)
-        self.user_listbox.pack(fill=tk.BOTH, expand=True, pady=5)
+        self.user_listbox.pack(fill=tk.BOTH, expand=True, pady=[5,0])
         self.user_listbox.bind("<<ListboxSelect>>", self.handleSelectClient)
         
         ttk.Label(self.right_frame, text="Select Services:").pack(anchor=tk.W)
@@ -73,36 +88,36 @@ class TemplateFiller:
         self.services_left_frame = ttk.Frame(self.services_frame)
         self.services_left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.services_right_frame = ttk.Frame(self.services_frame, width=40)
-        self.services_right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        self.services_right_frame.pack(side=tk.RIGHT, fill=tk.Y, expand=False, padx=[5, 0])
         self.service1_var = tk.StringVar()
-        self.service1_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service1_var)
+        self.service1_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service1_var, state="readonly")
         self.service1_combo.pack(fill=tk.X, pady=5)
         self.service2_var = tk.StringVar()
-        self.service2_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service2_var)
+        self.service2_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service2_var, state="readonly")
         self.service2_combo.pack(fill=tk.X, pady=5)
         self.service3_var = tk.StringVar()
-        self.service3_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service3_var)
+        self.service3_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service3_var, state="readonly")
         self.service3_combo.pack(fill=tk.X, pady=5)
         self.service4_var = tk.StringVar()
-        self.service4_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service4_var)
+        self.service4_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service4_var, state="readonly")
         self.service4_combo.pack(fill=tk.X, pady=5)
         self.service5_var = tk.StringVar()
-        self.service5_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service5_var)
+        self.service5_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service5_var, state="readonly")
         self.service5_combo.pack(fill=tk.X, pady=5)
         self.hour1_var = tk.StringVar()
-        self.hour1_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour1_var)
+        self.hour1_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour1_var, state="readonly")
         self.hour1_combo.pack(pady=5)
         self.hour2_var = tk.StringVar()
-        self.hour2_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour2_var)
+        self.hour2_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour2_var, state="readonly")
         self.hour2_combo.pack(pady=5)
         self.hour3_var = tk.StringVar()
-        self.hour3_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour3_var)
+        self.hour3_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour3_var, state="readonly")
         self.hour3_combo.pack(pady=5)
         self.hour4_var = tk.StringVar()
-        self.hour4_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour4_var)
+        self.hour4_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour4_var, state="readonly")
         self.hour4_combo.pack(pady=5)
         self.hour5_var = tk.StringVar()
-        self.hour5_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour5_var)
+        self.hour5_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour5_var, state="readonly")
         self.hour5_combo.pack(pady=5)
         self.hour1_combo['values'] = list(self.time_intervals)
         self.hour2_combo['values'] = list(self.time_intervals)
@@ -120,11 +135,14 @@ class TemplateFiller:
         self.hour4_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(4, event))
         self.hour5_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(5, event))
 
+        self.clear_services_button = ttk.Button(self.right_frame, text="Clear services", command=self.clear_services)
+        self.clear_services_button.pack(fill=tk.X, pady=5)
+
         ttk.Label(self.right_frame, text="Generated Text:").pack(anchor=tk.W)
-        self.result_text = tk.Text(self.right_frame, wrap=tk.WORD, width=40, height=15)
+        self.result_text = tk.Text(self.right_frame, wrap=tk.WORD, width=40, height=15, state="disabled")
         self.result_text.pack(fill=tk.BOTH, expand=True, pady=5)
         
-        ttk.Button(self.right_frame, text="Copy to Clipboard", command=self.copy_to_clipboard).pack(pady=5, fill=tk.BOTH, expand=True)
+        ttk.Button(self.right_frame, text="Copy to Clipboard", command=self.copy_to_clipboard).pack(pady=[5,0], fill=tk.BOTH, expand=True)
     
     def load_csv_dialog(self):
         filename = filedialog.askopenfilename(title="Select CSV File", filetypes=[("CSV files", "*.csv"), ("All files", "*.*")])
@@ -141,7 +159,9 @@ class TemplateFiller:
             try:
                 self.load_templates(filename)
                 messagebox.showinfo("Success", "Templates loaded successfully!")
-                self.load_templates_button.configure(style="Success.TButton")
+                # self.load_templates_button.configure(style="Success.TButton")
+                self.load_templates_button.configure(text="Refresh Templates")
+                # self.load_templates_button.configure(style="Accent.TButton")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to load templates: {str(e)}")
                 self.load_templates_button.configure(style="Default.TButton")
@@ -232,10 +252,32 @@ class TemplateFiller:
         selected_services = self.formatSelectedServices()
         try:
             result = template.format(FirstName=self.selected_user['First Name'], Location=self.selected_user['Location'], Services=selected_services)
+            self.result_text.config(state="normal")
             self.result_text.delete(1.0, tk.END)
             self.result_text.insert(1.0, result)
+            self.result_text.config(state="disabled")
         except KeyError as e:
             messagebox.showerror("Error", f"Template field {e} not found in user data")
+
+    def change_theme(self):
+        if self.root.tk.call("ttk::style", "theme", "use") == "azure-dark":
+            # Set light theme
+            self.root.tk.call("set_theme", "light")
+        else:
+            # Set dark theme
+            self.root.tk.call("set_theme", "dark")
+
+    def clear_services(self):
+        self.service1_var.set("")
+        self.service2_var.set("")
+        self.service3_var.set("")
+        self.service4_var.set("")
+        self.service5_var.set("")
+        self.hour1_var.set("")
+        self.hour2_var.set("")
+        self.hour3_var.set("")
+        self.hour4_var.set("")
+        self.hour5_var.set("")
     
     def copy_to_clipboard(self):
         # self.generate_text()
@@ -272,6 +314,11 @@ class TemplateFiller:
 def main():
     root = tk.Tk()
     
+    # Set the theme
+    root.tk.call('source', 'themes/Azure/azure.tcl')
+    root.tk.call('set_theme', 'dark')
+    # root.tk.call('set_theme', 'light')
+
     # Create a style object
     style = ttk.Style()
     style.configure("Success.TButton",  foreground="green")
