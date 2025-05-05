@@ -62,6 +62,8 @@ class TemplateFiller(tk.Tk):
         ttk.Button(self.header, text="Change Theme", command=self.change_theme).pack(side=tk.RIGHT)
 
         ttk.Button(self.header, text="Get update", command=self.get_update).pack(side=tk.RIGHT, padx=5)
+
+        ttk.Button(self.header, text="This is an update").pack(side=tk.RIGHT)
         
         # Left and right frames with resizable layout
         self.resizable_frame = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)
