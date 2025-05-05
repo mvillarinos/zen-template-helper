@@ -17,15 +17,15 @@ class TemplateFiller(tk.Tk):
         self.templates = {}
         self.services = []
         self.time_intervals = [
-            "09:00", "09:15", "09:30", "09:45",
-            "10:00", "10:15", "10:30", "10:45",
-            "11:00", "11:15", "11:30", "11:45",
-            "12:00", "12:15", "12:30", "12:45",
-            "13:00", "13:15", "13:30", "13:45",
-            "14:00", "14:15", "14:30", "14:45",
-            "15:00", "15:15", "15:30", "15:45",
-            "16:00", "16:15", "16:30", "16:45",
-            "17:00"
+            "9 AM", "9:15 AM", "9:30 AM", "9:45 AM",
+            "10 AM", "10:15 AM", "10:30 AM", "10:45 AM",
+            "11 AM", "11:15 AM", "11:30 AM", "11:45 AM",
+            "12 PM", "12:15 PM", "12:30 PM", "12:45 PM",
+            "1 PM", "1:15 PM", "1:30 PM", "1:45 PM",
+            "2 PM", "2:15 PM", "2:30 PM", "2:45 PM",
+            "3 PM", "3:15 PM", "3:30 PM", "3:45 PM",
+            "4 PM", "4:15 PM", "4:30 PM", "4:45 PM",
+            "5 PM"
         ]
 
         self.selected_user = None
@@ -62,8 +62,6 @@ class TemplateFiller(tk.Tk):
         ttk.Button(self.header, text="Change Theme", command=self.change_theme).pack(side=tk.RIGHT)
 
         ttk.Button(self.header, text="Get update", command=self.get_update).pack(side=tk.RIGHT, padx=5)
-
-        ttk.Button(self.header, text="This is an update").pack(side=tk.RIGHT)
         
         # Left and right frames with resizable layout
         self.resizable_frame = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)
@@ -334,13 +332,13 @@ class TemplateFiller(tk.Tk):
     def add_minutes_to_time(self, time_str, minutes):
         try:
             # Parse the time string into a datetime object
-            time_obj = datetime.strptime(time_str, "%H:%M")
+            time_obj = datetime.strptime(time_str, "%I:%M %p" if ":" in time_str else "%I %p")
             # Add the minutes
             new_time = time_obj + timedelta(minutes=minutes)
-            # Format the new time back to HH:MM
-            return new_time.strftime("%H:%M")
+            # Format the new time back to 12-hour format with "AM"/"PM" and a space
+            return new_time.strftime("%I:%M %p").lstrip("0").replace(":00", "")
         except ValueError as e:
-            raise ValueError(f"Invalid time format: {time_str}. Expected HH:MM.") from e
+            raise ValueError(f"Invalid time format: {time_str}. Expected 12-hour format with AM/PM.") from e
 
 def main():
     root = tk.Tk()
