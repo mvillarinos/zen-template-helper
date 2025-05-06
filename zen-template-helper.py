@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import sys
+from data.autosuggest_combobox import AutoSuggestCombobox
 
 class TemplateFiller(tk.Tk):
     def __init__(self, root):
@@ -102,35 +103,30 @@ class TemplateFiller(tk.Tk):
         self.services_right_frame.pack(side=tk.RIGHT, fill=tk.Y, expand=False, padx=[5, 0])
 
         servicesTitles = list([service['title'] for service in self.services])
-        self.service1_var = tk.StringVar()
-        self.service1_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service1_var, values=servicesTitles, state="readonly")
+        self.service1_combo = AutoSuggestCombobox(self.services_left_frame)
+        self.service1_combo.set_completion_list(servicesTitles)
         self.service1_combo.pack(fill=tk.X, pady=5)
-        self.service2_var = tk.StringVar()
-        self.service2_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service2_var, values=servicesTitles, state="readonly")
+        self.service2_combo = AutoSuggestCombobox(self.services_left_frame)
+        self.service2_combo.set_completion_list(servicesTitles)
         self.service2_combo.pack(fill=tk.X, pady=5)
-        self.service3_var = tk.StringVar()
-        self.service3_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service3_var, values=servicesTitles, state="readonly")
+        self.service3_combo = AutoSuggestCombobox(self.services_left_frame)
+        self.service3_combo.set_completion_list(servicesTitles)
         self.service3_combo.pack(fill=tk.X, pady=5)
-        self.service4_var = tk.StringVar()
-        self.service4_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service4_var, values=servicesTitles, state="readonly")
+        self.service4_combo = AutoSuggestCombobox(self.services_left_frame)
+        self.service4_combo.set_completion_list(servicesTitles)
         self.service4_combo.pack(fill=tk.X, pady=5)
-        self.service5_var = tk.StringVar()
-        self.service5_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service5_var, values=servicesTitles, state="readonly")
+        self.service5_combo = AutoSuggestCombobox(self.services_left_frame)
+        self.service5_combo.set_completion_list(servicesTitles)
         self.service5_combo.pack(fill=tk.X, pady=5)
-        self.hour1_var = tk.StringVar()
-        self.hour1_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour1_var, values=self.time_intervals, width="8", state="readonly")
+        self.hour1_combo = ttk.Combobox(self.services_right_frame, values=self.time_intervals, width="8", state="readonly")
         self.hour1_combo.pack(pady=5)
-        self.hour2_var = tk.StringVar()
-        self.hour2_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour2_var, values=self.time_intervals, width="8", state="readonly")
+        self.hour2_combo = ttk.Combobox(self.services_right_frame, values=self.time_intervals, width="8", state="readonly")
         self.hour2_combo.pack(pady=5)
-        self.hour3_var = tk.StringVar()
-        self.hour3_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour3_var, values=self.time_intervals, width="8", state="readonly")
+        self.hour3_combo = ttk.Combobox(self.services_right_frame, values=self.time_intervals, width="8", state="readonly")
         self.hour3_combo.pack(pady=5)
-        self.hour4_var = tk.StringVar()
-        self.hour4_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour4_var, values=self.time_intervals, width="8", state="readonly")
+        self.hour4_combo = ttk.Combobox(self.services_right_frame, values=self.time_intervals, width="8", state="readonly")
         self.hour4_combo.pack(pady=5)
-        self.hour5_var = tk.StringVar()
-        self.hour5_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour5_var, values=self.time_intervals, width="8", state="readonly")
+        self.hour5_combo = ttk.Combobox(self.services_right_frame, values=self.time_intervals, width="8", state="readonly")
         self.hour5_combo.pack(pady=5)
         self.service1_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(1, event))
         self.service2_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(2, event))
@@ -151,7 +147,7 @@ class TemplateFiller(tk.Tk):
         self.result_text = tk.Text(self.right_frame, wrap=tk.WORD, width=40, height=15, state="disabled")
         self.result_text.pack(fill=tk.BOTH, expand=True, pady=5)
         
-        ttk.Button(self.right_frame, text="Copy to Clipboard", command=self.copy_to_clipboard).pack(pady=[5,0], fill=tk.BOTH, expand=True)
+        ttk.Button(self.right_frame, text="Copy to Clipboard", command=self.copy_to_clipboard).pack(pady=[5,0], fill=tk.BOTH, expand=True, side=tk.BOTTOM)
     
     def load_csv_dialog(self):
         filename = filedialog.askopenfilename(title="Select CSV File", filetypes=[("CSV files", "*.csv"), ("All files", "*.*")])
@@ -208,26 +204,14 @@ class TemplateFiller(tk.Tk):
 
     def handleRefreshTimes(self, index, event):
         for i in range(index, 5):
-            if i == 1:
-                selected_service = next((s for s in self.services if s["title"] == self.service1_var.get()), None)
-                if selected_service and self.hour1_var.get() != "":
-                    duration = selected_service.get("duration", 0)
-                    self.hour2_var.set(self.add_minutes_to_time(self.hour1_var.get(), duration))
-            elif i == 2:
-                selected_service = next((s for s in self.services if s["title"] == self.service2_var.get()), None)
-                if selected_service and self.hour2_var.get() != "":
-                    duration = selected_service.get("duration", 0)
-                    self.hour3_var.set(self.add_minutes_to_time(self.hour2_var.get(), duration))
-            elif i == 3:
-                selected_service = next((s for s in self.services if s["title"] == self.service3_var.get()), None)
-                if selected_service and self.hour3_var.get() != "":
-                    duration = selected_service.get("duration", 0)
-                    self.hour4_var.set(self.add_minutes_to_time(self.hour3_var.get(), duration))
-            elif i == 4:
-                selected_service = next((s for s in self.services if s["title"] == self.service4_var.get()), None)
-                if selected_service and self.hour4_var.get() != "":
-                    duration = selected_service.get("duration", 0)
-                    self.hour5_var.set(self.add_minutes_to_time(self.hour4_var.get(), duration))
+            service_combo = getattr(self, f'service{i}_combo')
+            hour_combo = getattr(self, f'hour{i}_combo')
+            selected_service = next((s for s in self.services if s["title"] == service_combo.get()), None)
+            if selected_service and hour_combo.get() != "":
+                duration = selected_service.get("duration", 0)
+                if i < 5:
+                    next_hour_combo = getattr(self, f'hour{i+1}_combo')
+                    next_hour_combo.set(self.add_minutes_to_time(hour_combo.get(), duration))
         self.generate_text()
 
     def generate_text(self):
@@ -259,16 +243,16 @@ class TemplateFiller(tk.Tk):
             self.theme_button.config(text="☽")
 
     def clear_services(self):
-        self.service1_var.set("")
-        self.service2_var.set("")
-        self.service3_var.set("")
-        self.service4_var.set("")
-        self.service5_var.set("")
-        self.hour1_var.set("")
-        self.hour2_var.set("")
-        self.hour3_var.set("")
-        self.hour4_var.set("")
-        self.hour5_var.set("")
+        self.service1_combo.set("")
+        self.service2_combo.set("")
+        self.service3_combo.set("")
+        self.service4_combo.set("")
+        self.service5_combo.set("")
+        self.hour1_combo.set("")
+        self.hour2_combo.set("")
+        self.hour3_combo.set("")
+        self.hour4_combo.set("")
+        self.hour5_combo.set("")
     
     def copy_to_clipboard(self):
         text = self.result_text.get(1.0, tk.END).strip()
@@ -299,9 +283,9 @@ class TemplateFiller(tk.Tk):
 
     def formatSelectedServices(self):
         selected_services = ""
-        for i in range(1, 6):
-            service_var = getattr(self, f'service{i}_var')
-            hour_var = getattr(self, f'hour{i}_var')
+        for i in range(1, 5):
+            service_var = getattr(self, f'service{i}_combo')
+            hour_var = getattr(self, f'hour{i}_combo')
             service_name = service_var.get()
             hour_time = hour_var.get()
             if service_name and hour_time:
