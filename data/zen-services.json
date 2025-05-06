@@ -1,9 +1,126 @@
 {
 	"services": [
-		{ "title": "", "duration": 0 },
-		{ "title": "Facial", "duration": 30 },
-		{ "title": "Massage", "duration": 60 },
-		{ "title": "Body", "duration": 90 },
-		{ "title": "Manipedi", "duration": 15 }
+		{ "title": "Zenssage (50 minutes massage)", "duration": 60 },
+		{ "title": "Zenssage (80 minutes massage)", "duration": 90 },
+		{
+			"title": "Ohh la la Relax (50 minutes double cabin massage)",
+			"duration": 60
+		},
+		{
+			"title": "Ohh la la Relax (80 minutes double cabin massage)",
+			"duration": 90
+		},
+		{
+			"title": "Ohh la la No more knots (50 minutes double cabin massage)",
+			"duration": 60
+		},
+		{
+			"title": "Ohh la la No more knots (80 minutes double cabin massage)",
+			"duration": 90
+		},
+		{
+			"title": "Ohh la la On the beach (50 minutes double cabin massage)",
+			"duration": 60
+		},
+		{
+			"title": "Ohh la la On the beach (80 minutes double cabin massage)",
+			"duration": 90
+		},
+		{ "title": "No more knots (50 minutes massage)", "duration": 60 },
+		{ "title": "No more knots (80 minutes massage)", "duration": 90 },
+		{ "title": "Soul and Toes (25 minutes massage)", "duration": 30 },
+		{ "title": "Soul and Toes (50 minutes massage)", "duration": 60 },
+		{ "title": "Perfect Duo (50 minutes massage)", "duration": 60 },
+		{ "title": "Perfect Duo (80 minutes massage)", "duration": 90 },
+		{ "title": "Mother To Be (50 minutes massage)", "duration": 60 },
+		{ "title": "Mother To Be (80 minutes massage)", "duration": 90 },
+		{ "title": "Slimssage (25 minutes massage)", "duration": 30 },
+		{ "title": "Passages (50 minutes massage)", "duration": 60 },
+		{ "title": "Passages (80 minutes massage)", "duration": 90 },
+		{ "title": "Hot Stones (50 minutes massage)", "duration": 60 },
+		{ "title": "Hot Stones (80 minutes massage)", "duration": 90 },
+		{ "title": "On the rocks (50 minutes massage)", "duration": 60 },
+		{ "title": "On the rocks (80 minutes massage)", "duration": 90 },
+		{ "title": "On the beach (50 minutes massage)", "duration": 60 },
+		{ "title": "On the beach (80 minutes massage)", "duration": 90 },
+		{ "title": "Alfresco (50 minutes outdoors massage)", "duration": 60 },
+		{ "title": "Rock me twice (50 minutes massage)", "duration": 60 },
+		{ "title": "Rock me twice (80 minutes massage)", "duration": 90 },
+		{ "title": "Zenergy Stones (50 minutes massage)", "duration": 60 },
+		{ "title": "Zenergy Stones (80 minutes massage)", "duration": 90 },
+		{ "title": "Stones to the rescue (50 minutes massage)", "duration": 60 },
+		{ "title": "Stones to the rescue (80 minutes massage)", "duration": 90 },
+		{ "title": "A helping hand (55 minutes massage)", "duration": 60 },
+		{
+			"title": "Zen Facial (50 minutes deep cleaning facial treatment)",
+			"duration": 60
+		},
+		{ "title": "Micro Sweep (50 minutes facial treatment)", "duration": 60 },
+		{
+			"title": "Strapless Zen Facial (50 minutes deep cleaning facial treatment)",
+			"duration": 60
+		},
+		{ "title": "ReZenerate  (50 minutes facial treatment)", "duration": 60 },
+		{
+			"title": "Triple Collagen Facial (50 minutes facial treatment)",
+			"duration": 60
+		},
+		{ "title": "OxyZen Flow (50 minutes treatment)", "duration": 60 },
+		{
+			"title": "Carbon Peel Facial (50 minutes facial treatment)",
+			"duration": 60
+		},
+		{ "title": "Deluxe Facial (50 minutes facial treatment)", "duration": 60 },
+		{
+			"title": "4-in-1 Super Facial (50 minutes facial treatment)",
+			"duration": 60
+		},
+		{
+			"title": "Zen Facial & Velo Hidratante (50 minutes facial treatment)",
+			"duration": 60
+		},
+		{ "title": "Zen Facial & Ampule (50 minutes treatment)", "duration": 60 },
+		{ "title": "Anti-Aging (50 minutes facial treatment)", "duration": 60 },
+		{ "title": "Bubbles Facial (50 minutes facial treatment)", "duration": 60 },
+		{ "title": "Body Scrub + Jelly Mask", "duration": 60 },
+		{ "title": "Paraffin Dip - Hands", "duration": 60 },
+		{ "title": "Paraffin Dip - Feet", "duration": 60 },
+		{ "title": "Neck Lift", "duration": 60 },
+		{ "title": "F Select by Esthetician", "duration": 60 },
+		{ "title": "Glyco Bright (50 minutes facial treatment)", "duration": 60 },
+		{ "title": "Footnotes (50 minutes pedicure)", "duration": 60 },
+		{ "title": "Footprints (50 minutes pedicure)", "duration": 60 },
+		{
+			"title": "Footprints with Paraffin Dip (50 minutes pedicure)",
+			"duration": 60
+		},
+		{ "title": "Hands Off (30 minutes manicure)", "duration": 30 },
+		{ "title": "Hands Up (30 minutes manicure)", "duration": 30 },
+		{ "title": "Cucumber heels (50 minutes pedicure)", "duration": 60 },
+		{ "title": "Barefoot Pedicure (50 minutes pedicure)", "duration": 60 },
+		{ "title": "Gel Polish Removal ", "duration": 15 },
+		{ "title": "Gel Change of Color ", "duration": 30 },
+		{ "title": "Gel Hands Off", "duration": 45 },
+		{ "title": "Gel Application Hands or Feet", "duration": 30 },
+		{ "title": "Toes On The Go (50 minutes pedicure)", "duration": 60 },
+		{ "title": "Soft Heels Pedicure (50 minutes pedicure)", "duration": 60 },
+		{ "title": "Brazilian Bikini Wax", "duration": 45 },
+		{ "title": "Upper Lip Wax", "duration": 10 },
+		{ "title": "Back Waxing", "duration": 30 },
+		{ "title": "Half Legs Wax", "duration": 30 },
+		{ "title": "Half Arms Wax", "duration": 30 },
+		{ "title": "California Bikini Wax", "duration": 40 },
+		{ "title": "Underarms Wax", "duration": 25 },
+		{ "title": "Full arms Waxing", "duration": 30 },
+		{ "title": "Full legs Waxing", "duration": 50 },
+		{ "title": "Back or Chest Waxing", "duration": 55 },
+		{ "title": "Abdomen Wax", "duration": 30 },
+		{ "title": "Brow Wax", "duration": 15 },
+		{ "title": "Brow Shaping", "duration": 30 },
+		{ "title": "Bikini Wax", "duration": 30 },
+		{ "title": "Body Wrap (45 minutes treatment)", "duration": 45 },
+		{ "title": "Body Scrub (45 minutes treatment)", "duration": 45 },
+		{ "title": "Blow away and up (hair treatment)", "duration": 50 },
+		{ "title": "Blow out (hair treatment)", "duration": 50 }
 	]
 }

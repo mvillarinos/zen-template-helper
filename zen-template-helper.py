@@ -12,6 +12,7 @@ class TemplateFiller(tk.Tk):
         self.root = root
         self.root.title("Zen Template Filler")
         self.root.geometry("800x720")
+        self.root.iconbitmap("data/zen-icon.ico")
         
         self.users = []
         self.templates = {}
@@ -116,19 +117,19 @@ class TemplateFiller(tk.Tk):
         self.service5_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service5_var, values=servicesTitles, state="readonly")
         self.service5_combo.pack(fill=tk.X, pady=5)
         self.hour1_var = tk.StringVar()
-        self.hour1_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour1_var, values=self.time_intervals, state="readonly")
+        self.hour1_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour1_var, values=self.time_intervals, width="10", state="readonly")
         self.hour1_combo.pack(pady=5)
         self.hour2_var = tk.StringVar()
-        self.hour2_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour2_var, values=self.time_intervals, state="readonly")
+        self.hour2_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour2_var, values=self.time_intervals, width="10", state="readonly")
         self.hour2_combo.pack(pady=5)
         self.hour3_var = tk.StringVar()
-        self.hour3_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour3_var, values=self.time_intervals, state="readonly")
+        self.hour3_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour3_var, values=self.time_intervals, width="10", state="readonly")
         self.hour3_combo.pack(pady=5)
         self.hour4_var = tk.StringVar()
-        self.hour4_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour4_var, values=self.time_intervals, state="readonly")
+        self.hour4_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour4_var, values=self.time_intervals, width="10", state="readonly")
         self.hour4_combo.pack(pady=5)
         self.hour5_var = tk.StringVar()
-        self.hour5_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour5_var, values=self.time_intervals, state="readonly")
+        self.hour5_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour5_var, values=self.time_intervals, width="10", state="readonly")
         self.hour5_combo.pack(pady=5)
         self.service1_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(1, event))
         self.service2_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(2, event))
@@ -285,8 +286,8 @@ class TemplateFiller(tk.Tk):
             subprocess.run(["git", "pull"], cwd=current_dir, check=True, shell=True)
             
             # Relaunch the application
-            python = sys.executable
-            os.execl(python, python, f'"{current_file}"', *sys.argv[1:])
+            pythonw = sys.executable.replace("python.exe", "pythonw.exe")
+            os.execl(pythonw, pythonw, f'"{current_file}"', *sys.argv[1:])
         except subprocess.CalledProcessError as e:
             messagebox.showerror("Error", f"Failed to update repository: {e}")
         except Exception as e:
