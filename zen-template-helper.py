@@ -54,7 +54,8 @@ class TemplateFiller(tk.Tk):
 
         ttk.Button(self.header, text="Load CSV Data", command=self.load_csv_dialog).pack(side=tk.LEFT) 
 
-        ttk.Button(self.header, text="Change Theme", command=self.change_theme).pack(side=tk.RIGHT)
+        self.theme_button = ttk.Button(self.header, text="☽", command=self.change_theme, width="2")
+        self.theme_button.pack(side=tk.RIGHT)
         ttk.Button(self.header, text="Get update", command=self.get_update).pack(side=tk.RIGHT, padx=5)
         
         # Left and right frames with resizable layout
@@ -79,7 +80,7 @@ class TemplateFiller(tk.Tk):
         self.template_combo = ttk.Combobox(self.template_group, textvariable=self.template_var, values=list(self.templates.keys()), state="readonly")
         self.template_combo.pack(side=tk.LEFT, fill=tk.X, pady=5, expand=True)
         self.template_combo.set(list(self.templates.keys())[0])
-        self.load_templates_button = ttk.Button(self.template_group, text="⟳", command=self.load_templates_dialog)
+        self.load_templates_button = ttk.Button(self.template_group, text="📁", command=self.load_templates_dialog, width="3")
         self.load_templates_button.pack(side=tk.RIGHT, padx=[5, 0])
 
         # User listbox
@@ -117,19 +118,19 @@ class TemplateFiller(tk.Tk):
         self.service5_combo = ttk.Combobox(self.services_left_frame, textvariable=self.service5_var, values=servicesTitles, state="readonly")
         self.service5_combo.pack(fill=tk.X, pady=5)
         self.hour1_var = tk.StringVar()
-        self.hour1_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour1_var, values=self.time_intervals, width="10", state="readonly")
+        self.hour1_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour1_var, values=self.time_intervals, width="8", state="readonly")
         self.hour1_combo.pack(pady=5)
         self.hour2_var = tk.StringVar()
-        self.hour2_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour2_var, values=self.time_intervals, width="10", state="readonly")
+        self.hour2_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour2_var, values=self.time_intervals, width="8", state="readonly")
         self.hour2_combo.pack(pady=5)
         self.hour3_var = tk.StringVar()
-        self.hour3_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour3_var, values=self.time_intervals, width="10", state="readonly")
+        self.hour3_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour3_var, values=self.time_intervals, width="8", state="readonly")
         self.hour3_combo.pack(pady=5)
         self.hour4_var = tk.StringVar()
-        self.hour4_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour4_var, values=self.time_intervals, width="10", state="readonly")
+        self.hour4_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour4_var, values=self.time_intervals, width="8", state="readonly")
         self.hour4_combo.pack(pady=5)
         self.hour5_var = tk.StringVar()
-        self.hour5_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour5_var, values=self.time_intervals, width="10", state="readonly")
+        self.hour5_combo = ttk.Combobox(self.services_right_frame, textvariable=self.hour5_var, values=self.time_intervals, width="8", state="readonly")
         self.hour5_combo.pack(pady=5)
         self.service1_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(1, event))
         self.service2_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(2, event))
@@ -252,8 +253,10 @@ class TemplateFiller(tk.Tk):
     def change_theme(self):
         if self.root.tk.call("ttk::style", "theme", "use") == "azure-dark":
             self.root.tk.call("set_theme", "light")
+            self.theme_button.config(text="☀")
         else:
             self.root.tk.call("set_theme", "dark")
+            self.theme_button.config(text="☽")
 
     def clear_services(self):
         self.service1_var.set("")
