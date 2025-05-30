@@ -1,7 +1,17 @@
-{
-	"Spa Appointment": "¡Saludos, {FirstName}! Bienvenido a Zen Spa! 🤍\n\nLe confirmamos su cita para el 14 de febrero, en nuestra localidad de {Location}. Su experiencia comenzará con:\n{Services}\n\nPara su mayor comodidad, le recomendamos llegar 30-45 minutos antes para realizar su check-in y disfrutar plenamente de su experiencia. 💆‍♀️✨\n\nAdemás, contamos con exclusivas amenidades para su disfrute y la posibilidad de reservar servicios adicionales el mismo día - ¡déjenos saber y con gusto le asistimos!\n\nAgradecemos que nos confirme su asistencia o avísenos si necesita reprogramar su visita.\n\nAnabell Anzorena\nSpa Concierge",
-
-	"Happy Birthday": "¡Felicidades, {FirstName}! 🙌\n\n{Location} le desea un muy feliz cumpleaños. Le deseamos un gran año lleno de salud, felicidad y prosperidad. \n\nPara celebrarlo disfrute un 25% de descuento en los servicios que elija para usted y un invitado, durante todo el mes de su cumpleaños.\n\n¿Le gustaria que elijamos la fecha de su proxima visita? Quedo atenta. \n\n¡Que tenga un dia ZENsacional!\n\nAnabell Anzorena \nSpa Concierge",
-
-	"Facial": "Saludos {FirstName}, \n\nLe saludamos desde {Location} y agradecemos su reciente visita. Nos llena de satisfacción haber sido parte de su rutina de cuidado personal y bienestar. \n\nNuestras especialistas de la piel recomiendan realizar un facial mensual para preservar la luminosidad y salud de su piel a lo largo del año. Con gusto le ayudaremos a coordinar su próxima visita en el momento que sea más conveniente para usted. \n\nQuedo a su disposición para cualquier consulta o asistencia adicional. Será un placer recibirle nuevamente en nuestro espacio de bienestar.\n\n¡Que tenga un día ZENsacional! \n\nAnabell Anzorena \nSpa Concierge"
-}
+[
+	{
+		"title": "Spa Appointment",
+		"template": "¡Saludos, {FirstName}! Bienvenido a Zen Spa! 🤍\n\nLe confirmamos su cita para el {Date}, en nuestra localidad de {Location}. Su experiencia comenzará con:\n{Services}\n\nPara su mayor comodidad, le recomendamos llegar 30-45 minutos antes para realizar su check-in y disfrutar plenamente de su experiencia. 💆‍♀️✨\n\nAdemás, contamos con exclusivas amenidades para su disfrute y la posibilidad de reservar servicios adicionales el mismo día - ¡déjenos saber y con gusto le asistimos!\n\nAgradecemos que nos confirme su asistencia o avísenos si necesita reprogramar su visita.\n\nAnabell Anzorena\nSpa Concierge",
+		"type": "Appointments"
+	},
+	{
+		"title": "Happy Birthday",
+		"template": "¡Felicidades, {FirstName}! 🙌\n\n{Location} le desea un muy feliz cumpleaños. Le deseamos un gran año lleno de salud, felicidad y prosperidad. \n\nPara celebrarlo disfrute un 25% de descuento en los servicios que elija para usted y un invitado, durante todo el mes de su cumpleaños.\n\n¿Le gustaria que elijamos la fecha de su proxima visita? Quedo atenta. \n\n¡Que tenga un dia ZENsacional!\n\nAnabell Anzorena \nSpa Concierge",
+		"type": "Customers"
+	},
+	{
+		"title": "Facial",
+		"template": "Saludos {FirstName}, \n\nLe saludamos desde {Location} y agradecemos su reciente visita. Nos llena de satisfacción haber sido parte de su rutina de cuidado personal y bienestar. \n\nNuestras especialistas de la piel recomiendan realizar un facial mensual para preservar la luminosidad y salud de su piel a lo largo del año. Con gusto le ayudaremos a coordinar su próxima visita en el momento que sea más conveniente para usted. \n\nQuedo a su disposición para cualquier consulta o asistencia adicional. Será un placer recibirle nuevamente en nuestro espacio de bienestar.\n\n¡Que tenga un día ZENsacional! \n\nAnabell Anzorena \nSpa Concierge",
+		"type": "Customers"
+	}
+]

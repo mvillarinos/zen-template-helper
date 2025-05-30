@@ -6,7 +6,12 @@ import json
 import os
 import subprocess
 import sys
-from data.autosuggest_combobox import AutoSuggestCombobox
+# Custom components
+from src.ui.autosuggest_combobox import AutoSuggestCombobox
+# from src.ui.snackbar import Snackbar
+# System classes
+from src.clients.ClientAppointments import ClientAppointments
+from src.clients.ClientCustomers import ClientCustomers
 
 class TemplateFiller(tk.Tk):
     def __init__(self, root):
@@ -15,7 +20,6 @@ class TemplateFiller(tk.Tk):
         self.root.geometry("800x720")
         self.root.iconbitmap("data/zen-icon.ico")
         
-        self.users = []
         self.templates = {}
         self.services = []
         self.time_intervals = [
@@ -29,9 +33,12 @@ class TemplateFiller(tk.Tk):
             "4 PM", "4:15 PM", "4:30 PM", "4:45 PM",
             "5 PM"
         ]
-        self.selected_user = None
+        self.locations = []
+        self.clients = []
+        self.client_selected = None
+        self.client_types = ''
 
-        # Automatically load templates and services
+        # Automatically load templates, services and locations
         try:
             self.load_templates("data/zen-templates.json")
         except Exception as e:
@@ -39,7 +46,11 @@ class TemplateFiller(tk.Tk):
         try:
             self.load_services("data/zen-services.json")
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to load templates on start: {str(e)}")
+            messagebox.showerror("Error", f"Failed to load services on start: {str(e)}")
+        try:
+            self.load_locations("data/zen-locations.json")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load locations on start: {str(e)}")
 
         # Create the widgets
         self.create_widgets()
@@ -78,23 +89,46 @@ class TemplateFiller(tk.Tk):
 
         ttk.Label(self.template_group, text="Select Template:").pack(side=tk.TOP, fill=tk.X)
         self.template_var = tk.StringVar()
-        self.template_combo = ttk.Combobox(self.template_group, textvariable=self.template_var, values=list(self.templates.keys()), state="readonly")
+        self.template_combo = ttk.Combobox(self.template_group, textvariable=self.template_var, values=[template["title"] for template in self.templates], state="readonly")
         self.template_combo.pack(side=tk.LEFT, fill=tk.X, pady=5, expand=True)
-        self.template_combo.set(list(self.templates.keys())[0])
+        self.template_combo.bind("<<ComboboxSelected>>",  self.handleSelectTemplate)
+        
         self.load_templates_button = ttk.Button(self.template_group, text="📁", command=self.load_templates_dialog, width="3")
         self.load_templates_button.pack(side=tk.RIGHT, padx=[5, 0])
 
-        # User listbox
-        ttk.Label(self.left_frame, text="Select User:").pack(anchor=tk.W)
-        self.user_listbox = tk.Listbox(self.left_frame, width=40, height=10, selectmode=tk.SINGLE)
-        self.user_listbox.pack(fill=tk.BOTH, expand=True, pady=[5,0])
-        self.user_listbox.bind("<<ListboxSelect>>", self.handleSelectClient)
+        # Client listbox
+        ttk.Label(self.left_frame, text="Select Client:").pack(anchor=tk.W)
+        self.client_listbox = tk.Listbox(self.left_frame, width=40, height=10, selectmode=tk.SINGLE, exportselection=0)
+        self.client_listbox.pack(fill=tk.BOTH, expand=True, pady=[5,0])
+        self.client_listbox.bind("<<ListboxSelect>>", self.handleSelectClient)
         
-        # Services group
-        ttk.Label(self.right_frame, text="Select Services:").pack(anchor=tk.W)
+        # Dynamic group
+        self.dynamic_group = ttk.Frame(self.right_frame)
+        self.dynamic_group.pack(fill=tk.X)
 
-        self.services_frame = ttk.Frame(self.right_frame)
+        # Result text area
+        ttk.Label(self.right_frame, text="Generated Text:").pack(anchor=tk.W)
+        self.result_text = tk.Text(self.right_frame, wrap=tk.WORD, width=40, height=15, state="disabled")
+        self.result_text.pack(fill=tk.BOTH, expand=True, pady=5)
+        
+        ttk.Button(self.right_frame, text="Copy to Clipboard", command=self.copy_result_text_to_clipboard).pack(pady=[5,0], fill=tk.BOTH, expand=True, side=tk.BOTTOM)
+
+        # Autoselect first template and render dynamic groups accordingly
+        self.template_combo.current(0)
+        self.handleSelectTemplate()
+
+    def render_dynamic_groups(self):
+        self.group_clear(self.dynamic_group)
+        if self.client_types == 'Appointments':
+            self.render_location_group()
+        elif self.client_types == 'Customers':
+            self.render_services_group()
+
+    def render_services_group(self):
+        self.services_frame = ttk.Frame(self.dynamic_group)
         self.services_frame.pack(fill=tk.X)
+
+        ttk.Label(self.services_frame, text="Select Services:").pack(anchor=tk.W)
 
         self.services_left_frame = ttk.Frame(self.services_frame)
         self.services_left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -139,16 +173,19 @@ class TemplateFiller(tk.Tk):
         self.hour4_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(4, event))
         self.hour5_combo.bind("<<ComboboxSelected>>", lambda event: self.handleRefreshTimes(5, event))
 
-        self.clear_services_button = ttk.Button(self.right_frame, text="Clear services", command=self.clear_services)
+        self.clear_services_button = ttk.Button(self.dynamic_group, text="Clear services", command=self.clear_services)
         self.clear_services_button.pack(fill=tk.X, pady=5)
 
-        # Result text area
-        ttk.Label(self.right_frame, text="Generated Text:").pack(anchor=tk.W)
-        self.result_text = tk.Text(self.right_frame, wrap=tk.WORD, width=40, height=15, state="disabled")
-        self.result_text.pack(fill=tk.BOTH, expand=True, pady=5)
-        
-        ttk.Button(self.right_frame, text="Copy to Clipboard", command=self.copy_to_clipboard).pack(pady=[5,0], fill=tk.BOTH, expand=True, side=tk.BOTTOM)
-    
+
+    def render_location_group(self):
+        self.location_frame = ttk.Frame(self.dynamic_group)
+        self.location_frame.pack(fill=tk.X)
+        ttk.Label(self.location_frame, text="Location:").pack(anchor=tk.W)
+        self.location_var = tk.StringVar()
+        self.location_combo = ttk.Combobox(self.location_frame, textvariable=self.location_var, values=self.locations, state="readonly" )
+        self.location_combo.pack(fill=tk.X, pady=5)
+        self.location_combo.bind("<<ComboboxSelected>>", self.generate_text)
+
     def load_csv_dialog(self):
         filename = filedialog.askopenfilename(title="Select CSV File", filetypes=[("CSV files", "*.csv"), ("All files", "*.*")])
         if filename:
@@ -168,20 +205,29 @@ class TemplateFiller(tk.Tk):
                 messagebox.showerror("Error", f"Failed to load templates: {str(e)}")
     
     def load_csv(self, filename):
-        self.users = []
         try:
             with open(filename, 'r', encoding='utf-8-sig') as file:
                 reader = csv.DictReader(file)
-                for row in reader:
-                    if 'First Name' in row and 'Location' in row:
-                        self.users.append(row)
+                if self.client_types == 'Appointments':
+                    if 'Customer Name' in reader.fieldnames and 'Type' in reader.fieldnames and 'Treatment Name' in reader.fieldnames:
+                        new_clients = []
+                        for row in reader:
+                            new_clients.append(row)
+                        self.clients = self.formatClients(new_clients)
                     else:
                         raise KeyError("Missing required columns in CSV")
-            
-            self.user_listbox.delete(0, tk.END)
-            for user in self.users:
-                self.user_listbox.insert(tk.END, f"{user['First Name']} {user['Last Name']} ({user['Location']})")
+                elif self.client_types == 'Customers':
+                    if 'First Name' in reader.fieldnames and 'Location' in reader.fieldnames:
+                        new_clients = []
+                        for row in reader:
+                            new_clients.append(row)
+                        self.clients = self.formatClients(new_clients)
+                    else:
+                        raise KeyError("Missing required columns in CSV")
                 
+                self.client_listbox.delete(0, tk.END)
+                for client in self.clients:
+                    self.client_listbox.insert(tk.END, repr(client))
         except Exception as e:
             raise Exception(f"Error reading CSV: {str(e)}")
     
@@ -193,14 +239,26 @@ class TemplateFiller(tk.Tk):
         with open(filename, 'r', encoding='utf-8') as file:
             self.services = json.load(file).get('services')
     
+    def load_locations(self, filename):
+        with open(filename, 'r', encoding='utf-8') as file:
+            self.locations = json.load(file)
+    
     def handleSelectClient(self, event=None):
-        selection = self.user_listbox.curselection()
+        selection = self.client_listbox.curselection()
         if not selection:
             return
-        
-        self.selected_user = self.users[selection[0]]
+        self.client_selected = self.clients[selection[0]]
         self.copy_phone_to_clipboard()
         self.generate_text()
+
+    def handleSelectTemplate(self, event=None):
+        selection = self.template_combo.current()
+        if selection == -1:
+            return
+        template = self.templates[selection]
+        self.client_types = template['type']
+        self.clear_all_values()
+        self.render_dynamic_groups()
 
     def handleRefreshTimes(self, index, event):
         for i in range(index, 5):
@@ -214,25 +272,26 @@ class TemplateFiller(tk.Tk):
                     next_hour_combo.set(self.add_minutes_to_time(hour_combo.get(), duration))
         self.generate_text()
 
-    def generate_text(self):
-        template_name = self.template_var.get()
-        if not template_name or template_name not in self.templates:
-            messagebox.showwarning("Warning", "Please select a valid template")
+    def generate_text(self, event=None):        
+        if not self.client_selected:
             return
-        
-        if not self.selected_user:
-            return
-        
-        template = self.templates[template_name]
-        selected_services = self.formatSelectedServices()
+        template = next((template for template in self.templates if template["title"] == self.template_var.get()), None)
         try:
-            result = template.format(FirstName=self.selected_user['First Name'], Location=self.selected_user['Location'], Services=selected_services)
+            if self.client_types == 'Appointments':
+                if not self.location_var.get():
+                    messagebox.showerror("Error", "Please select a location.")
+                    # self.show_snackbar('Please select a location')
+                    return
+                result = template['template'].format(FirstName=self.client_selected.get_first_name(), Services=self.client_selected.get_formatted_services(), Date=self.client_selected.get_date(), Location=self.location_var.get())
+            elif self.client_types == 'Customers':
+                selected_services = self.formatSelectedServices()
+                result = template['template'].format(FirstName=self.client_selected.name, Location=self.client_selected.location, Services=selected_services)
             self.result_text.config(state="normal")
             self.result_text.delete(1.0, tk.END)
             self.result_text.insert(1.0, result)
             self.result_text.config(state="disabled")
         except KeyError as e:
-            messagebox.showerror("Error", f"Template field {e} not found in user data")
+            messagebox.showerror("Error", f"Template field {e} not found in client data")
 
     def change_theme(self):
         if self.root.tk.call("ttk::style", "theme", "use") == "azure-dark":
@@ -242,26 +301,40 @@ class TemplateFiller(tk.Tk):
             self.root.tk.call("set_theme", "dark")
             self.theme_button.config(text="☽")
 
+    def clear_all_values(self):
+        self.clear_services()
+        self.clear_locations()
+        self.client_listbox.delete(0, tk.END)
+        self.clients = []
+        self.result_text.config(state="normal")
+        self.result_text.delete(1.0, tk.END)
+
     def clear_services(self):
-        self.service1_combo.set("")
-        self.service2_combo.set("")
-        self.service3_combo.set("")
-        self.service4_combo.set("")
-        self.service5_combo.set("")
-        self.hour1_combo.set("")
-        self.hour2_combo.set("")
-        self.hour3_combo.set("")
-        self.hour4_combo.set("")
-        self.hour5_combo.set("")
+        if 'service1_combo' in globals():
+            self.service1_combo.set("")
+            self.service2_combo.set("")
+            self.service3_combo.set("")
+            self.service4_combo.set("")
+            self.service5_combo.set("")
+            self.hour1_combo.set("")
+            self.hour2_combo.set("")
+            self.hour3_combo.set("")
+            self.hour4_combo.set("")
+            self.hour5_combo.set("")
+
+    def clear_locations(self):
+        if 'location_combo' in globals():
+            self.location_combo.current(-1)
     
-    def copy_to_clipboard(self):
+    def copy_result_text_to_clipboard(self):
         text = self.result_text.get(1.0, tk.END).strip()
         self.root.clipboard_clear()
         self.root.clipboard_append(text)
 
     def copy_phone_to_clipboard(self):
-        self.root.clipboard_clear()
-        self.root.clipboard_append(self.selected_user['Primary Phone'])
+        if hasattr(self.client_selected, "phone"):
+            self.root.clipboard_clear()
+            self.root.clipboard_append(self.client_selected.phone)
     
     def get_update(self):
         try:
@@ -303,12 +376,53 @@ class TemplateFiller(tk.Tk):
         except ValueError as e:
             raise ValueError(f"Invalid time format: {time_str}. Expected 12-hour format with AM/PM.") from e
 
+    def group_clear(self, group):
+        for widget in group.winfo_children():
+            widget.pack_forget()
+
+    # def show_snackbar(self, message, duration=3000):
+    #     Snackbar(self.root, message, duration)
+
+    def formatClients(self, clients):
+        local_clients = []
+        if self.client_types == 'Appointments':
+            for row in clients:
+                if row['Type'] == 'Standalone':
+                    new = ClientAppointments(row['Customer Name'], row['Type'])
+                    new.add_service(row['Treatment Name'], row['Appointment On'])
+                    local_clients.append(new)
+                elif row['Type'] == 'Linked' or row['Type'] == 'Package':
+                    linked = next((c for c in local_clients if c.name == row['Customer Name']), None)
+                    if linked:
+                        linked.add_service(row['Treatment Name'], row['Appointment On'])
+                    else:
+                        new = ClientAppointments(row['Customer Name'], row['Type'])
+                        new.add_service(row['Treatment Name'], row['Appointment On'])
+                        local_clients.append(new)
+                elif row['Type'] == 'Group':
+                    grouped = next((c for c in local_clients if c.group_id == row['Group ID']), None)
+                    if grouped:
+                        grouped.add_service(row['Treatment Name'], row['Appointment On'], row['Customer Name'])
+                    else:
+                        new = ClientAppointments(row['Customer Name'], row['Type'], row['Group ID'])
+                        new.add_service(row['Treatment Name'], row['Appointment On'], row['Customer Name'])
+                        local_clients.append(new)
+        elif self.client_types == 'Customers':
+            for row in clients:
+                local_clients.append(ClientCustomers(row['First Name'], row['Last Name'], row['Location'], row['Primary Phone']))
+
+        return local_clients
+
 def main():
     root = tk.Tk()
     
     # Set the theme
-    root.tk.call('source', 'themes/Azure/azure.tcl')
+    root.tk.call('source', 'src/themes/Azure/azure.tcl')
     root.tk.call('set_theme', 'dark')
+
+    style = ttk.Style()
+    style.configure("Snackbar.TFrame", background="#333")
+    style.configure("Snackbar.TLabel", foreground="white", background="#333")
     
     app = TemplateFiller(root)
     root.mainloop()
