@@ -4,7 +4,8 @@ def extract_time(appointment_on):
     return " ".join(appointment_on.split()[-2:]).upper()
 
 def extract_first_name(name):
-        return name.split()[0]
+    if name == None: return name
+    return name.split()[0]
 
 def format_plural(count):
     if count == 2:
@@ -41,21 +42,21 @@ class ClientAppointments:
 
     def get_date(self):
         month_mapping = {
-            "January": "enero", "February": "febrero", "March": "marzo",
-            "April": "abril", "May": "mayo", "June": "junio",
-            "July": "julio", "August": "agosto", "September": "septiembre",
-            "October": "octubre", "November": "noviembre", "December": "diciembre"
+            "Jan": "enero", "Feb": "febrero", "Mar": "marzo",
+            "Apr": "abril", "May": "mayo", "Jun": "junio",
+            "Jul": "julio", "Aug": "agosto", "Sep": "septiembre",
+            "Oct": "octubre", "Nov": "noviembre", "Dec": "diciembre"
         }
-        date_obj = datetime.strptime(self.services[0]['time'], "%B %d, %Y %I:%M %p")
+        date_obj = datetime.strptime(self.services[0]['time'], "%b %d, %Y %I:%M %p")
         # Format the date and replace the month with its Spanish equivalent
         day = str(int(date_obj.strftime("%d")))
-        month = month_mapping[date_obj.strftime("%B")]
+        month = month_mapping[date_obj.strftime("%b")]
         return f"{day} de {month}"
     
     def get_formatted_services(self):
         selected_services = ""
         if self.client_type == "Standalone":
-            selected_services = f"\n🕒 {extract_time(self.services[0].service_time)} - {self.services[0].service}"
+            selected_services = f"\n🕒 {extract_time(self.services[0]['time'])} - {self.services[0]['service']}"
         elif self.client_type == "Group":
             groups = []
             for service in self.services:
@@ -64,7 +65,7 @@ class ClientAppointments:
             grouped_services = {time: [] for time in groups}
             for service in self.services:
                 grouped_services[service['time']].append(service)
-            sorted_grouped_services = sorted(grouped_services.items(), key=lambda x: datetime.strptime(x[0], "%B %d, %Y %I:%M %p"))
+            sorted_grouped_services = sorted(grouped_services.items(), key=lambda x: datetime.strptime(x[0], "%b %d, %Y %I:%M %p"))
             for time, services in sorted_grouped_services:
                 selected_services += f"\n🕒 {extract_time(time)} - "
                 all_same_service = all(s['service'] == services[0]['service'] for s in services)
@@ -75,7 +76,7 @@ class ClientAppointments:
                         selected_services += f"{service['service']} para {extract_first_name(service['client'])}, "
                     selected_services = selected_services[:-2]  # Remove the last comma and space
         elif self.client_type == "Linked" or self.client_type == "Package":
-            ordered_services = ordered_services = sorted(self.services,key=lambda x: datetime.strptime(x['time'], "%B %d, %Y %I:%M %p"))
+            ordered_services = ordered_services = sorted(self.services,key=lambda x: datetime.strptime(x['time'], "%b %d, %Y %I:%M %p"))
             for service in ordered_services:
                 selected_services += f"\n🕒 {extract_time(service['time'])} - {service['service']}"
         return selected_services
