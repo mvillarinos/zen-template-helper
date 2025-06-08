@@ -7,8 +7,8 @@ import os
 import subprocess
 import sys
 # Custom components
-from src.ui.autosuggest_combobox import AutoSuggestCombobox
-# from src.ui.snackbar import Snackbar
+from src.ui.AutoSuggestCombobox import AutoSuggestCombobox
+from src.ui.ToastService import ToastService
 # System classes
 from src.clients.ClientAppointments import ClientAppointments
 from src.clients.ClientCustomers import ClientCustomers
@@ -52,6 +52,8 @@ class TemplateFiller(tk.Tk):
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load locations on start: {str(e)}")
 
+        # Initialize toast service
+        self.toast_service = ToastService(self.root)
         # Create the widgets
         self.create_widgets()
         
@@ -191,7 +193,7 @@ class TemplateFiller(tk.Tk):
         if filename:
             try:
                 self.load_csv(filename)
-                messagebox.showinfo("Success", "CSV file loaded successfully!")
+                self.toast_service.show_toast('CSV file loaded successfully!','Success')
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to load CSV: {str(e)}")
     
@@ -200,7 +202,7 @@ class TemplateFiller(tk.Tk):
         if filename:
             try:
                 self.load_templates(filename)
-                messagebox.showinfo("Success", "Templates loaded successfully!")
+                self.toast_service.show_toast('Templates loaded successfully!','Success')
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to load templates: {str(e)}")
     
@@ -279,8 +281,7 @@ class TemplateFiller(tk.Tk):
         try:
             if self.client_types == 'Appointments':
                 if not self.location_var.get():
-                    messagebox.showerror("Error", "Please select a location.")
-                    # self.show_snackbar('Please select a location')
+                    self.toast_service.show_toast('Please select a location','Warning')
                     return
                 result = template['template'].format(FirstName=self.client_selected.get_first_name(), Services=self.client_selected.get_formatted_services(), Date=self.client_selected.get_date(), Location=self.location_var.get())
             elif self.client_types == 'Customers':
@@ -380,9 +381,6 @@ class TemplateFiller(tk.Tk):
         for widget in group.winfo_children():
             widget.pack_forget()
 
-    # def show_snackbar(self, message, duration=3000):
-    #     Snackbar(self.root, message, duration)
-
     def formatClients(self, clients):
         local_clients = []
         if self.client_types == 'Appointments':
@@ -421,8 +419,12 @@ def main():
     root.tk.call('set_theme', 'dark')
 
     style = ttk.Style()
-    style.configure("Snackbar.TFrame", background="#333")
-    style.configure("Snackbar.TLabel", foreground="white", background="#333")
+    style.configure("ToastSuccess.TFrame", background="#27AE60")
+    style.configure("ToastSuccess.TLabel", foreground="white", background="#27AE60")
+    style.configure("ToastWarning.TFrame", background="#E67E22")
+    style.configure("ToastWarning.TLabel", foreground="white", background="#E67E22")
+    style.configure("ToastError.TFrame", background="#C0392B")
+    style.configure("ToastError.TLabel", foreground="white", background="#C0392B")
     
     app = TemplateFiller(root)
     root.mainloop()
