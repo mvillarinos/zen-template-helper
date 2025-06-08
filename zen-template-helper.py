@@ -20,6 +20,7 @@ class TemplateFiller(tk.Tk):
         self.root.geometry("800x720")
         self.root.iconbitmap("data/zen-icon.ico")
         
+        self.language = 'en'
         self.templates = {}
         self.services = []
         self.time_intervals = [
@@ -68,9 +69,11 @@ class TemplateFiller(tk.Tk):
 
         ttk.Button(self.header, text="Load CSV Data", command=self.load_csv_dialog).pack(side=tk.LEFT) 
 
+        self.language_button = ttk.Button(self.header, text=self.language.upper(), command=self.change_language, width="3")
+        self.language_button.pack(side=tk.RIGHT)
         self.theme_button = ttk.Button(self.header, text="☽", command=self.change_theme, width="2")
-        self.theme_button.pack(side=tk.RIGHT)
-        ttk.Button(self.header, text="Get update", command=self.get_update).pack(side=tk.RIGHT, padx=5)
+        self.theme_button.pack(side=tk.RIGHT, padx=5)
+        ttk.Button(self.header, text="Get update", command=self.get_update).pack(side=tk.RIGHT)
         
         # Left and right frames with resizable layout
         self.resizable_frame = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)
@@ -184,7 +187,7 @@ class TemplateFiller(tk.Tk):
         self.location_frame.pack(fill=tk.X)
         ttk.Label(self.location_frame, text="Location:").pack(anchor=tk.W)
         self.location_var = tk.StringVar()
-        self.location_combo = ttk.Combobox(self.location_frame, textvariable=self.location_var, values=self.locations, state="readonly" )
+        self.location_combo = ttk.Combobox(self.location_frame, textvariable=self.location_var, values=[location["title"] for location in self.locations], state="readonly" )
         self.location_combo.pack(fill=tk.X, pady=5)
         self.location_combo.bind("<<ComboboxSelected>>", self.generate_text)
 
@@ -283,10 +286,11 @@ class TemplateFiller(tk.Tk):
                 if not self.location_var.get():
                     self.toast_service.show_toast('Please select a location','Warning')
                     return
-                result = template['template'].format(FirstName=self.client_selected.get_first_name(), Services=self.client_selected.get_formatted_services(), Date=self.client_selected.get_date(), Location=self.location_var.get())
+                location =  next((location for location in self.locations if location["title"] == self.location_var.get()), None)
+                result = template['template'][self.language].format(FirstName=self.client_selected.get_first_name(), Services=self.client_selected.get_formatted_services(self.language), Date=self.client_selected.get_date(self.language), Location=location['text'][self.language])
             elif self.client_types == 'Customers':
                 selected_services = self.formatSelectedServices()
-                result = template['template'].format(FirstName=self.client_selected.name, Location=self.client_selected.location, Services=selected_services)
+                result = template['template'][self.language].format(FirstName=self.client_selected.name, Location=self.client_selected.location, Services=selected_services)
             self.result_text.config(state="normal")
             self.result_text.delete(1.0, tk.END)
             self.result_text.insert(1.0, result)
@@ -301,6 +305,15 @@ class TemplateFiller(tk.Tk):
         else:
             self.root.tk.call("set_theme", "dark")
             self.theme_button.config(text="☽")
+
+    def change_language(self):
+        if self.language == 'es':
+            self.language = 'en'
+            self.language_button.config(text='EN')
+        else:
+            self.language = 'es'
+            self.language_button.config(text='ES')
+        self.generate_text()
 
     def clear_all_values(self):
         self.clear_services()
