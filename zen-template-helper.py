@@ -14,7 +14,7 @@ from src.clients.ClientAppointments import ClientAppointments
 from src.clients.ClientCustomers import ClientCustomers
 
 class TemplateFiller(tk.Tk):
-    def __init__(self, root):
+    def __init__(self, root, style):
         self.root = root
         self.root.title("Zen Template Filler")
         self.root.geometry("800x720")
@@ -54,7 +54,8 @@ class TemplateFiller(tk.Tk):
             messagebox.showerror("Error", f"Failed to load locations on start: {str(e)}")
 
         # Initialize toast service
-        self.toast_service = ToastService(self.root)
+        self.toast_service = ToastService(self.root, style)
+
         # Create the widgets
         self.create_widgets()
         
@@ -430,16 +431,9 @@ def main():
     # Set the theme
     root.tk.call('source', 'src/themes/Azure/azure.tcl')
     root.tk.call('set_theme', 'dark')
-
     style = ttk.Style()
-    style.configure("ToastSuccess.TFrame", background="#27AE60")
-    style.configure("ToastSuccess.TLabel", foreground="white", background="#27AE60")
-    style.configure("ToastWarning.TFrame", background="#E67E22")
-    style.configure("ToastWarning.TLabel", foreground="white", background="#E67E22")
-    style.configure("ToastError.TFrame", background="#C0392B")
-    style.configure("ToastError.TLabel", foreground="white", background="#C0392B")
     
-    app = TemplateFiller(root)
+    app = TemplateFiller(root, style)
     root.mainloop()
 
 if __name__ == "__main__":
