@@ -66,6 +66,7 @@ def format_plural(count, lang):
 class ClientAppointments:
     def __init__(self, name, client_type, group_id = None):
         self.name = name
+        self.client_names = [name]
         self.client_type = client_type
         self.group_id = group_id
         self.services = []
@@ -76,9 +77,14 @@ class ClientAppointments:
             "time": service_time,
             "client": client
         })
+        if client != None and client not in self.client_names:
+            self.client_names.append(client)
 
     def get_first_name(self):
         return extract_first_name(self.name)
+    
+    def get_clients_count(self):
+        return len(self.client_names)
 
     def get_date(self, lang='es'):
         date_obj = datetime.strptime(self.services[0]['time'], "%b %d, %Y %I:%M %p")

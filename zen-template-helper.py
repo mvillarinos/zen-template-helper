@@ -34,6 +34,7 @@ class TemplateFiller(tk.Tk):
             "4 PM", "4:15 PM", "4:30 PM", "4:45 PM",
             "5 PM"
         ]
+        self.operators = []
         self.locations = []
         self.clients = []
         self.client_selected = None
@@ -52,6 +53,10 @@ class TemplateFiller(tk.Tk):
             self.load_locations("data/zen-locations.json")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load locations on start: {str(e)}")
+        try:
+            self.load_operators("data/zen-operators.json")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load operators on start: {str(e)}")
 
         # Initialize toast service
         self.toast_service = ToastService(self.root, style)
@@ -89,6 +94,7 @@ class TemplateFiller(tk.Tk):
         self.resizable_frame.add(self.left_frame, weight=3)
         self.resizable_frame.add(self.right_frame, weight=1)
         
+        # LEFT COLUMN
         # Template group
         self.template_group = ttk.Frame(self.left_frame)
         self.template_group.pack(fill=tk.X)
@@ -108,6 +114,7 @@ class TemplateFiller(tk.Tk):
         self.client_listbox.pack(fill=tk.BOTH, expand=True, pady=[5,0])
         self.client_listbox.bind("<<ListboxSelect>>", self.handleSelectClient)
         
+        # RIGHT COLUMN
         # Dynamic group
         self.dynamic_group = ttk.Frame(self.right_frame)
         self.dynamic_group.pack(fill=tk.X)
@@ -126,9 +133,18 @@ class TemplateFiller(tk.Tk):
     def render_dynamic_groups(self):
         self.group_clear(self.dynamic_group)
         if self.client_types == 'Appointments':
+            self.render_operator_group()
             self.render_location_group()
         elif self.client_types == 'Customers':
-            self.render_services_group()
+            self.render_operator_group()
+            # self.render_services_group()
+
+    def render_operator_group(self):
+        ttk.Label(self.dynamic_group, text="Operator:").pack(anchor=tk.W)
+        self.operator_var = tk.StringVar()
+        self.operator_combo = ttk.Combobox(self.dynamic_group, textvariable=self.operator_var, values=self.operators, width="8", state="readonly")
+        self.operator_combo.pack(fill=tk.X, pady=5)
+        self.operator_combo.bind("<<ComboboxSelected>>", self.generate_text)
 
     def render_services_group(self):
         self.services_frame = ttk.Frame(self.dynamic_group)
@@ -248,6 +264,10 @@ class TemplateFiller(tk.Tk):
     def load_locations(self, filename):
         with open(filename, 'r', encoding='utf-8') as file:
             self.locations = json.load(file)
+
+    def load_operators(self, filename):
+        with open(filename, 'r', encoding='utf-8') as file:
+            self.operators = json.load(file)
     
     def handleSelectClient(self, event=None):
         selection = self.client_listbox.curselection()
@@ -282,16 +302,31 @@ class TemplateFiller(tk.Tk):
         if not self.client_selected:
             return
         template = next((template for template in self.templates if template["title"] == self.template_var.get()), None)
+        if not self.operator_var.get():
+            self.toast_service.show_toast('Please select an operator','Warning')
+            return
         try:
             if self.client_types == 'Appointments':
                 if not self.location_var.get():
                     self.toast_service.show_toast('Please select a location','Warning')
                     return
                 location =  next((location for location in self.locations if location["title"] == self.location_var.get()), None)
-                result = template['template'][self.language].format(FirstName=self.client_selected.get_first_name(), Services=self.client_selected.get_formatted_services(self.language), Date=self.client_selected.get_date(self.language), Location=location['text'][self.language])
+                result = template['template'][self.language].format(
+                    FirstName=self.client_selected.get_formatted_names(self.language),
+                    Services=self.client_selected.get_formatted_services(self.language),
+                    Date=self.client_selected.get_date(self.language),
+                    Location=location['text'][self.language],
+                    Operator=self.operator_var.get(),
+                    Plural= 's' if self.language == 'es' and self.client_selected.get_clients_count() > 1 else ''
+                )
             elif self.client_types == 'Customers':
                 selected_services = self.formatSelectedServices()
-                result = template['template'][self.language].format(FirstName=self.client_selected.name, Location=self.client_selected.location, Services=selected_services)
+                result = template['template'][self.language].format(
+                    FirstName=self.client_selected.name,
+                    Location=self.client_selected.location,
+                    Services=selected_services,
+                    Operator=self.operator_var.get()
+                )
             self.result_text.config(state="normal")
             self.result_text.delete(1.0, tk.END)
             self.result_text.insert(1.0, result)
