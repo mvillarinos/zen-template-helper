@@ -1,5 +1,29 @@
 from datetime import datetime
 
+month_mapping = {
+            "es": {
+                "Jan": "enero", "Feb": "febrero", "Mar": "marzo",
+                "Apr": "abril", "May": "mayo", "Jun": "junio",
+                "Jul": "julio", "Aug": "agosto", "Sep": "septiembre",
+                "Oct": "octubre", "Nov": "noviembre", "Dec": "diciembre"
+            },
+            "en": {
+                "Jan": "January", "Feb": "February", "Mar": "March",
+                "Apr": "April", "May": "May", "Jun": "June",
+                "Jul": "July", "Aug": "August", "Sep": "September",
+                "Oct": "October", "Nov": "November", "Dec": "December"
+            }
+        }
+day_mapping = {
+            "1": "1st", "2": "2nd", "3": "3rd", "4": "4th", "5": "5th",
+            "6": "6th", "7": "7th", "8": "8th", "9": "9th", "10": "10th",
+            "11": "11th", "12": "12th", "13": "13th", "14": "14th", "15": "15th",
+            "16": "16th", "17": "17th", "18": "18th", "19": "19th", "20": "20th",
+            "21": "21st", "22": "22nd", "23": "23rd", "24": "24th", "25": "25th",
+            "26": "26th", "27": "27th", "28": "28th", "29": "29th", "30": "30th",
+            "31": "31st"
+        }
+
 def extract_time(appointment_on):
     return " ".join(appointment_on.split()[-2:]).upper()
 
@@ -7,25 +31,57 @@ def extract_first_name(name):
     if name == None: return name
     return name.split()[0]
 
-def format_plural(count):
-    if count == 2:
-        return "ambas"
-    if count == 3:
-        return "las tres"
-    if count == 4:
-        return "las cuatro"
-    if count == 5:
-        return "las cinco"
-    if count == 6:
-        return "las seis"
-    if count == 7:
-        return "las siete"
-    if count == 8:
-        return "las ocho"
+def format_names(names, lang):
+    names =  [extract_first_name(name) for name in names]
+    if len(names) == 1:
+        return names[0]
+    elif len(names) == 2:
+        if lang == "es":
+            return f"{names[0]} y {names[1]}"
+        else:
+            return f"{names[0]} and {names[1]}"
+    else:
+        if lang == "es":
+            return f"{', '.join(names[:-1])} y {names[-1]}"
+        else:
+            return f"{', '.join(names[:-1])} and {names[-1]}"
+
+def format_plural(count, lang):
+    if lang == 'es':
+        if count == 2:
+            return "ambas"
+        if count == 3:
+            return "las tres"
+        if count == 4:
+            return "las cuatro"
+        if count == 5:
+            return "las cinco"
+        if count == 6:
+            return "las seis"
+        if count == 7:
+            return "las siete"
+        if count == 8:
+            return "las ocho"
+    elif lang == 'en':
+        if count == 2:
+            return "both"
+        if count == 3:
+            return "the three of you"
+        if count == 4:
+            return "the four of you"
+        if count == 5:
+            return "the five of you"
+        if count == 6:
+            return "the six of you"
+        if count == 7:
+            return "the seven of you"
+        if count == 8:
+            return "the eight of you"
 
 class ClientAppointments:
     def __init__(self, name, client_type, group_id = None):
         self.name = name
+        self.client_names = [name]
         self.client_type = client_type
         self.group_id = group_id
         self.services = []
@@ -36,24 +92,29 @@ class ClientAppointments:
             "time": service_time,
             "client": client
         })
+        if client != None and client not in self.client_names:
+            self.client_names.append(client)
 
     def get_first_name(self):
         return extract_first_name(self.name)
-
-    def get_date(self):
-        month_mapping = {
-            "Jan": "enero", "Feb": "febrero", "Mar": "marzo",
-            "Apr": "abril", "May": "mayo", "Jun": "junio",
-            "Jul": "julio", "Aug": "agosto", "Sep": "septiembre",
-            "Oct": "octubre", "Nov": "noviembre", "Dec": "diciembre"
-        }
-        date_obj = datetime.strptime(self.services[0]['time'], "%b %d, %Y %I:%M %p")
-        # Format the date and replace the month with its Spanish equivalent
-        day = str(int(date_obj.strftime("%d")))
-        month = month_mapping[date_obj.strftime("%b")]
-        return f"{day} de {month}"
     
-    def get_formatted_services(self):
+    def get_clients_count(self):
+        return len(self.client_names)
+
+    def get_formatted_names(self, lang="es"):
+        return format_names(self.client_names, lang)
+            
+
+    def get_date(self, lang='es'):
+        date_obj = datetime.strptime(self.services[0]['time'], "%b %d, %Y %I:%M %p")
+        day = str(int(date_obj.strftime("%d")))
+        month = month_mapping[lang][date_obj.strftime("%b")]
+        if lang =='es':
+            return f"{day} de {month}"
+        else:
+            return f"{month} {day_mapping[day]}"
+    
+    def get_formatted_services(self, lang="es"):
         selected_services = ""
         if self.client_type == "Standalone":
             selected_services = f"\n🕒 {extract_time(self.services[0]['time'])} - {self.services[0]['service']}"
@@ -70,10 +131,18 @@ class ClientAppointments:
                 selected_services += f"\n🕒 {extract_time(time)} - "
                 all_same_service = all(s['service'] == services[0]['service'] for s in services)
                 if all_same_service and len(services) > 1:
-                    selected_services += f"{services[0]['service']} para {format_plural(len(services))}"
+                    if lang == 'es':
+                        selected_services += f"{services[0]['service']} para {format_plural(len(services),lang)}"
+                    elif lang == 'en':
+                        selected_services += f"{services[0]['service']} for {format_plural(len(services),lang)}"   
+                    if len(services) < self.get_clients_count():
+                        selected_services += f" {format_names([s['client'] for s in services], lang)}"
                 else:
                     for service in services:
-                        selected_services += f"{service['service']} para {extract_first_name(service['client'])}, "
+                        if lang == 'es':
+                            selected_services += f"{service['service']} para {extract_first_name(service['client'])}, "
+                        elif lang== 'en':
+                            selected_services += f"{service['service']} for {extract_first_name(service['client'])}, "
                     selected_services = selected_services[:-2]  # Remove the last comma and space
         elif self.client_type == "Linked" or self.client_type == "Package":
             ordered_services = ordered_services = sorted(self.services,key=lambda x: datetime.strptime(x['time'], "%b %d, %Y %I:%M %p"))

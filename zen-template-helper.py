@@ -7,19 +7,20 @@ import os
 import subprocess
 import sys
 # Custom components
-from src.ui.autosuggest_combobox import AutoSuggestCombobox
-# from src.ui.snackbar import Snackbar
+from src.ui.AutoSuggestCombobox import AutoSuggestCombobox
+from src.ui.ToastService import ToastService
 # System classes
 from src.clients.ClientAppointments import ClientAppointments
 from src.clients.ClientCustomers import ClientCustomers
 
 class TemplateFiller(tk.Tk):
-    def __init__(self, root):
+    def __init__(self, root, style):
         self.root = root
         self.root.title("Zen Template Filler")
         self.root.geometry("800x720")
         self.root.iconbitmap("data/zen-icon.ico")
         
+        self.language = 'es'
         self.templates = {}
         self.services = []
         self.time_intervals = [
@@ -33,6 +34,7 @@ class TemplateFiller(tk.Tk):
             "4 PM", "4:15 PM", "4:30 PM", "4:45 PM",
             "5 PM"
         ]
+        self.operators = []
         self.locations = []
         self.clients = []
         self.client_selected = None
@@ -51,6 +53,13 @@ class TemplateFiller(tk.Tk):
             self.load_locations("data/zen-locations.json")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load locations on start: {str(e)}")
+        try:
+            self.load_operators("data/zen-operators.json")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load operators on start: {str(e)}")
+
+        # Initialize toast service
+        self.toast_service = ToastService(self.root, style)
 
         # Create the widgets
         self.create_widgets()
@@ -66,9 +75,11 @@ class TemplateFiller(tk.Tk):
 
         ttk.Button(self.header, text="Load CSV Data", command=self.load_csv_dialog).pack(side=tk.LEFT) 
 
+        self.language_button = ttk.Button(self.header, text=self.language.upper(), command=self.change_language, width="3")
+        self.language_button.pack(side=tk.RIGHT)
         self.theme_button = ttk.Button(self.header, text="☽", command=self.change_theme, width="2")
-        self.theme_button.pack(side=tk.RIGHT)
-        ttk.Button(self.header, text="Get update", command=self.get_update).pack(side=tk.RIGHT, padx=5)
+        self.theme_button.pack(side=tk.RIGHT, padx=5)
+        ttk.Button(self.header, text="Get update", command=self.get_update).pack(side=tk.RIGHT)
         
         # Left and right frames with resizable layout
         self.resizable_frame = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)
@@ -83,6 +94,7 @@ class TemplateFiller(tk.Tk):
         self.resizable_frame.add(self.left_frame, weight=3)
         self.resizable_frame.add(self.right_frame, weight=1)
         
+        # LEFT COLUMN
         # Template group
         self.template_group = ttk.Frame(self.left_frame)
         self.template_group.pack(fill=tk.X)
@@ -102,6 +114,7 @@ class TemplateFiller(tk.Tk):
         self.client_listbox.pack(fill=tk.BOTH, expand=True, pady=[5,0])
         self.client_listbox.bind("<<ListboxSelect>>", self.handleSelectClient)
         
+        # RIGHT COLUMN
         # Dynamic group
         self.dynamic_group = ttk.Frame(self.right_frame)
         self.dynamic_group.pack(fill=tk.X)
@@ -120,9 +133,18 @@ class TemplateFiller(tk.Tk):
     def render_dynamic_groups(self):
         self.group_clear(self.dynamic_group)
         if self.client_types == 'Appointments':
+            self.render_operator_group()
             self.render_location_group()
         elif self.client_types == 'Customers':
-            self.render_services_group()
+            self.render_operator_group()
+            # self.render_services_group()
+
+    def render_operator_group(self):
+        ttk.Label(self.dynamic_group, text="Operator:").pack(anchor=tk.W)
+        self.operator_var = tk.StringVar()
+        self.operator_combo = ttk.Combobox(self.dynamic_group, textvariable=self.operator_var, values=self.operators, width="8", state="readonly")
+        self.operator_combo.pack(fill=tk.X, pady=5)
+        self.operator_combo.bind("<<ComboboxSelected>>", self.generate_text)
 
     def render_services_group(self):
         self.services_frame = ttk.Frame(self.dynamic_group)
@@ -182,7 +204,7 @@ class TemplateFiller(tk.Tk):
         self.location_frame.pack(fill=tk.X)
         ttk.Label(self.location_frame, text="Location:").pack(anchor=tk.W)
         self.location_var = tk.StringVar()
-        self.location_combo = ttk.Combobox(self.location_frame, textvariable=self.location_var, values=self.locations, state="readonly" )
+        self.location_combo = ttk.Combobox(self.location_frame, textvariable=self.location_var, values=[location["title"] for location in self.locations], state="readonly" )
         self.location_combo.pack(fill=tk.X, pady=5)
         self.location_combo.bind("<<ComboboxSelected>>", self.generate_text)
 
@@ -191,7 +213,7 @@ class TemplateFiller(tk.Tk):
         if filename:
             try:
                 self.load_csv(filename)
-                messagebox.showinfo("Success", "CSV file loaded successfully!")
+                self.toast_service.show_toast('CSV file loaded successfully!','Success')
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to load CSV: {str(e)}")
     
@@ -200,7 +222,7 @@ class TemplateFiller(tk.Tk):
         if filename:
             try:
                 self.load_templates(filename)
-                messagebox.showinfo("Success", "Templates loaded successfully!")
+                self.toast_service.show_toast('Templates loaded successfully!','Success')
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to load templates: {str(e)}")
     
@@ -242,6 +264,10 @@ class TemplateFiller(tk.Tk):
     def load_locations(self, filename):
         with open(filename, 'r', encoding='utf-8') as file:
             self.locations = json.load(file)
+
+    def load_operators(self, filename):
+        with open(filename, 'r', encoding='utf-8') as file:
+            self.operators = json.load(file)
     
     def handleSelectClient(self, event=None):
         selection = self.client_listbox.curselection()
@@ -276,16 +302,31 @@ class TemplateFiller(tk.Tk):
         if not self.client_selected:
             return
         template = next((template for template in self.templates if template["title"] == self.template_var.get()), None)
+        if not self.operator_var.get():
+            self.toast_service.show_toast('Please select an operator','Warning')
+            return
         try:
             if self.client_types == 'Appointments':
                 if not self.location_var.get():
-                    messagebox.showerror("Error", "Please select a location.")
-                    # self.show_snackbar('Please select a location')
+                    self.toast_service.show_toast('Please select a location','Warning')
                     return
-                result = template['template'].format(FirstName=self.client_selected.get_first_name(), Services=self.client_selected.get_formatted_services(), Date=self.client_selected.get_date(), Location=self.location_var.get())
+                location =  next((location for location in self.locations if location["title"] == self.location_var.get()), None)
+                result = template['template'][self.language].format(
+                    FirstName=self.client_selected.get_formatted_names(self.language),
+                    Services=self.client_selected.get_formatted_services(self.language),
+                    Date=self.client_selected.get_date(self.language),
+                    Location=location['text'][self.language],
+                    Operator=self.operator_var.get(),
+                    Plural= 's' if self.language == 'es' and self.client_selected.get_clients_count() > 1 else ''
+                )
             elif self.client_types == 'Customers':
                 selected_services = self.formatSelectedServices()
-                result = template['template'].format(FirstName=self.client_selected.name, Location=self.client_selected.location, Services=selected_services)
+                result = template['template'][self.language].format(
+                    FirstName=self.client_selected.name,
+                    Location=self.client_selected.location,
+                    Services=selected_services,
+                    Operator=self.operator_var.get()
+                )
             self.result_text.config(state="normal")
             self.result_text.delete(1.0, tk.END)
             self.result_text.insert(1.0, result)
@@ -300,6 +341,15 @@ class TemplateFiller(tk.Tk):
         else:
             self.root.tk.call("set_theme", "dark")
             self.theme_button.config(text="☽")
+
+    def change_language(self):
+        if self.language == 'es':
+            self.language = 'en'
+            self.language_button.config(text='EN')
+        else:
+            self.language = 'es'
+            self.language_button.config(text='ES')
+        self.generate_text()
 
     def clear_all_values(self):
         self.clear_services()
@@ -380,9 +430,6 @@ class TemplateFiller(tk.Tk):
         for widget in group.winfo_children():
             widget.pack_forget()
 
-    # def show_snackbar(self, message, duration=3000):
-    #     Snackbar(self.root, message, duration)
-
     def formatClients(self, clients):
         local_clients = []
         if self.client_types == 'Appointments':
@@ -419,12 +466,9 @@ def main():
     # Set the theme
     root.tk.call('source', 'src/themes/Azure/azure.tcl')
     root.tk.call('set_theme', 'dark')
-
     style = ttk.Style()
-    style.configure("Snackbar.TFrame", background="#333")
-    style.configure("Snackbar.TLabel", foreground="white", background="#333")
     
-    app = TemplateFiller(root)
+    app = TemplateFiller(root, style)
     root.mainloop()
 
 if __name__ == "__main__":
