@@ -31,6 +31,21 @@ def extract_first_name(name):
     if name == None: return name
     return name.split()[0]
 
+def format_names(names, lang):
+    names =  [extract_first_name(name) for name in names]
+    if len(names) == 1:
+        return names[0]
+    elif len(names) == 2:
+        if lang == "es":
+            return f"{names[0]} y {names[1]}"
+        else:
+            return f"{names[0]} and {names[1]}"
+    else:
+        if lang == "es":
+            return f"{', '.join(names[:-1])} y {names[-1]}"
+        else:
+            return f"{', '.join(names[:-1])} and {names[-1]}"
+
 def format_plural(count, lang):
     if lang == 'es':
         if count == 2:
@@ -86,6 +101,10 @@ class ClientAppointments:
     def get_clients_count(self):
         return len(self.client_names)
 
+    def get_formatted_names(self, lang="es"):
+        return format_names(self.client_names, lang)
+            
+
     def get_date(self, lang='es'):
         date_obj = datetime.strptime(self.services[0]['time'], "%b %d, %Y %I:%M %p")
         day = str(int(date_obj.strftime("%d")))
@@ -116,6 +135,8 @@ class ClientAppointments:
                         selected_services += f"{services[0]['service']} para {format_plural(len(services),lang)}"
                     elif lang == 'en':
                         selected_services += f"{services[0]['service']} for {format_plural(len(services),lang)}"   
+                    if len(services) < self.get_clients_count():
+                        selected_services += f" {format_names([s['client'] for s in services], lang)}"
                 else:
                     for service in services:
                         if lang == 'es':

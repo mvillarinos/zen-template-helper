@@ -20,7 +20,7 @@ class TemplateFiller(tk.Tk):
         self.root.geometry("800x720")
         self.root.iconbitmap("data/zen-icon.ico")
         
-        self.language = 'en'
+        self.language = 'es'
         self.templates = {}
         self.services = []
         self.time_intervals = [
