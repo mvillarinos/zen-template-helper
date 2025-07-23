@@ -434,8 +434,9 @@ class TemplateFiller(tk.Tk):
         local_clients = []
         if self.client_types == 'Appointments':
             for row in clients:
+                phone = row['Customer Mobile Phone'] if 'Customer Mobile Phone' in row else row['Customer Home Phone'] if 'Customer Home Phone' in row else None
                 if row['Type'] == 'Standalone':
-                    new = ClientAppointments(row['Customer Name'], row['Type'])
+                    new = ClientAppointments(name=row['Customer Name'], client_type=row['Type'], phone=phone)
                     new.add_service(row['Treatment Name'], row['Appointment On'])
                     local_clients.append(new)
                 elif row['Type'] == 'Linked' or row['Type'] == 'Package':
@@ -443,7 +444,7 @@ class TemplateFiller(tk.Tk):
                     if linked:
                         linked.add_service(row['Treatment Name'], row['Appointment On'])
                     else:
-                        new = ClientAppointments(row['Customer Name'], row['Type'])
+                        new = ClientAppointments(name=row['Customer Name'], client_type=row['Type'], phone=phone)
                         new.add_service(row['Treatment Name'], row['Appointment On'])
                         local_clients.append(new)
                 elif row['Type'] == 'Group':
@@ -451,12 +452,12 @@ class TemplateFiller(tk.Tk):
                     if grouped:
                         grouped.add_service(row['Treatment Name'], row['Appointment On'], row['Customer Name'])
                     else:
-                        new = ClientAppointments(row['Customer Name'], row['Type'], row['Group ID'])
+                        new = ClientAppointments(name=row['Customer Name'], client_type=row['Type'], group_id=row['Group ID'], phone=phone)
                         new.add_service(row['Treatment Name'], row['Appointment On'], row['Customer Name'])
                         local_clients.append(new)
         elif self.client_types == 'Customers':
             for row in clients:
-                local_clients.append(ClientCustomers(row['First Name'], row['Last Name'], row['Location'], row['Primary Phone']))
+                local_clients.append(ClientCustomers(name=row['First Name'], last_name=row['Last Name'], location=row['Location'], phone=row['Primary Phone']))
 
         return local_clients
 

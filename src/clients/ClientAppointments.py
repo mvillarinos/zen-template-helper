@@ -79,11 +79,12 @@ def format_plural(count, lang):
             return "the eight of you"
 
 class ClientAppointments:
-    def __init__(self, name, client_type, group_id = None):
+    def __init__(self, name, client_type, group_id = None, phone = None):
         self.name = name
         self.client_names = [name]
         self.client_type = client_type
         self.group_id = group_id
+        self.phone = phone
         self.services = []
 
     def add_service(self, service_name, service_time, client = None):
