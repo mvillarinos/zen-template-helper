@@ -16,9 +16,9 @@
 		"type": "Customers"
 	},
 	{
-		"title": "Facial",
+		"title": "Condado CX",
 		"template": {
-			"es": "Saludos {FirstName}, \n\nLe saludamos desde {Location} y agradecemos su reciente visita. Nos llena de satisfacción haber sido parte de su rutina de cuidado personal y bienestar. \n\nNuestras especialistas de la piel recomiendan realizar un facial mensual para preservar la luminosidad y salud de su piel a lo largo del año. Con gusto le ayudaremos a coordinar su próxima visita en el momento que sea más conveniente para usted. \n\nQuedo a su disposición para cualquier consulta o asistencia adicional. Será un placer recibirle nuevamente en nuestro espacio de bienestar.\n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
+			"es": "Saludos {FirstName}, \n\nNos comunicamos con usted, ya que nuestra sucursal de Condado está cerrada por nueva construcción edilicia. Sus servicios siguen agendados, aunque en {Location}, FECHA a las HORAM \n\nsin ningún costo extra, con acceso a nuestro sauna y steam room y XXXX. \n\nQuedo a su disposición para cualquier consulta o asistencia adicional. Le agradecemos su entendimiento en este momento.\n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
 			"en": "INGLES\nINGLES\nINGLES\nSaludos {FirstName}, \n\nLe saludamos desde {Location} y agradecemos su reciente visita. Nos llena de satisfacción haber sido parte de su rutina de cuidado personal y bienestar. \n\nNuestras especialistas de la piel recomiendan realizar un facial mensual para preservar la luminosidad y salud de su piel a lo largo del año. Con gusto le ayudaremos a coordinar su próxima visita en el momento que sea más conveniente para usted. \n\nQuedo a su disposición para cualquier consulta o asistencia adicional. Será un placer recibirle nuevamente en nuestro espacio de bienestar.\n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge"
 		},
 		"type": "Customers"
