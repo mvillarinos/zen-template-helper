@@ -22,5 +22,13 @@
 			"en": "Greetings, {FirstName}, \n\n We are reaching out to you regarding your online request for Zen Spa Condado. We are closing the location due to building renovations. We can offer you to schedule your appointment in Zen Spa {Location}, starting your services at M, on XXX. Let me know if that option works out for you, or if you want us to keep searching for availability. 🤗.\n\nHave a ZENful day! \n\n{Operator}\nSpa Concierge"
 		},
 		"type": "Appointments"
+	},
+	{
+		"title": "Availability",
+		"template": {
+			"es": "Buenas tardes, . Bienvenida de nuevo a Zen Spa. 🤍\nRecibimos su solicitud de cita para el dia XXXXX a las XXXXM, para un XXXX, en Zen Spa XXXX. Queríamos consultarle si necesita remoción o aplicación de gel en su manicura y/o pedicura. Dejenos saber para confirmarle disponibilidad. Quedo a disposición.",
+			"en": "Good afternoon, welcome again to Zen Spa. 🤍\nWe received your request for XXX, at XXXX, in Zen Spa XXXX. We wanted to consult you if you need gel remotion or application on your hands or feet. Let us know to confirm you the availability, and we will arrange it."
+		},
+		"type": "Online Request"
 	}
 ]
