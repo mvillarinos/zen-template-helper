@@ -19,7 +19,7 @@
 		"title": "Condado CX",
 		"template": {
 			"es": "Saludos {FirstName}, \n\nNos comunicamos con usted, ya que nuestra sucursal de Condado está cerrada por nueva construcción edilicia. Sus servicios siguen agendados, aunque en {Location}, FECHA a las HORAM \n\nsin ningún costo extra, con acceso a nuestro sauna y steam room y XXXX. \n\nQuedo a su disposición para cualquier consulta o asistencia adicional. Le agradecemos su entendimiento en este momento.\n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
-			"en": "INGLES\nINGLES\nINGLES\nSaludos {FirstName}, \n\nNos comunicamos con usted, ya que nuestra sucursal de Condado está cerrada por nueva construcción edilicia. Sus servicios siguen agendados, aunque en {Location}, FECHA a las HORAM \n\nsin ningún costo extra, con acceso a nuestro sauna y steam room y XXXX. \n\nQuedo a su disposición para cualquier consulta o asistencia adicional. Le agradecemos su entendimiento en este momento.\n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge"
+			"en": "INGLES\nINGLES\nINGLES\nSaludos {FirstName}, \n\nNos comunicamos con usted, ya que nuestra sucursal de Condado está cerrada por nueva construcción edilicia. Sus servicios siguen agendados, aunque en {Location}, FECHA a las HORAM \n\nsin ningún costo extra, con acceso a nuestro sauna y steam room y XXXX. \n\nQuedo a su disposición para cualquier consulta o asistencia adicional. Le agradecemos su entendimiento en este momento.\n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
 		},
 		"type": "Customers"
 	}
