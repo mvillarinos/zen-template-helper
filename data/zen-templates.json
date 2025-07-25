@@ -18,7 +18,7 @@
 	{
 		"title": "Condado CX",
 		"template": {
-			"es": "Saludos {FirstName}, \n\nNos comunicamos con usted, ya que nuestra sucursal de Condado está cerrada por una nueva construcción edilicia. Sus servicios: \n {Services} \n Siguen agendados, aunque ha{Plural} sido reacomodado{Plural} en {Location}, el día {Date}, sin ningún costo extra, con acceso a nuestro sauna y steam room y XXXX. \n\nQuedo a su disposición para cualquier consulta o asistencia adicional. Le agradecemos su entendimiento en este momento.\n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
+			"es": "Saludos {FirstName}, \n\nNos comunicamos con usted, ya que nuestra sucursal de Condado está cerrada por una nueva construcción edilicia. Sus servicios: \n {Services} \n\n Siguen agendados, aunque ha{Plural} sido reacomodado{Plural} en {Location}, el día {Date}, sin ningún costo extra, con acceso a nuestro sauna y steam room y XXXX. \n\nQuedo a su disposición para cualquier consulta o asistencia adicional. Le agradecemos su entendimiento en este momento.\n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
 			"en": "Greetings, {FirstName}, \n\n We are reaching out to you regarding your online request for Zen Spa Condado. We are closing the location due to building renovations. We can offer you to schedule your appointment in Zen Spa {Location}, starting your services at M, on XXX. Let me know if that option works out for you, or if you want us to keep searching for availability. 🤗.\n\nHave a ZENful day! \n\n{Operator}\nSpa Concierge"
 		},
 		"type": "Appointments"
