@@ -29,6 +29,6 @@
 			"es": "Buenas tardes, . Bienvenida de nuevo a Zen Spa. 🤍\nRecibimos su solicitud de cita para el dia {Date}, para un {Service}, en Zen Spa {Location}. Queríamos consultarle si necesita remoción o aplicación de gel en su manicura y/o pedicura. Dejenos saber para confirmarle disponibilidad. Quedo a disposición.",
 			"en": "Good afternoon, welcome again to Zen Spa. 🤍\nWe received your request for a {Service}, on {Date}, in Zen Spa {Location}. We wanted to consult you if you need gel remotion or application on your hands or feet. Let us know to confirm you the availability, and we will arrange it."
 		},
-		"type": "Online Request"
+		"type": "Appointments"
 	}
 ]
