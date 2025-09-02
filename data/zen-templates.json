@@ -29,6 +29,6 @@
 			"es": "Buenas tardes, . Bienvenida de nuevo a Zen Spa. 🤍\nRecibimos su solicitud de cita para el dia {Date}, en {Location}, para realizarse:\n {Services} \n\nQueríamos consultarle si necesita remoción o aplicación de gel en su manicura y/o pedicura y si tiene{Plural} alguna preferencia con respecto a ser atendida{Plural} con un masajista caballero o masajista dama. Dejenos saber para confirmarle disponibilidad. Quedo a disposición.n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
 			"en": "Good afternoon, welcome again to Zen Spa. 🤍\nWe received your request for {Date}, in Zen Spa {Location},for: \n {Services}\n\n We wanted to consult you if you need gel remotion or application on your hands or feet, and if you have any preferences regarding having a male or female masseuse. Let us know to confirm you the availability, and we will arrange it.\n\nHave a ZENful day! \n\n{Operator}\nSpa Concierge"
 		},
-		"type": "Costumers"
+		"type": "Appointments"
 	}
 ]
