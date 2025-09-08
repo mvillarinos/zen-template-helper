@@ -233,7 +233,13 @@ class TemplateFiller(tk.Tk):
     def load_csv(self, filename):
         try:
             with open(filename, 'r', encoding='utf-8-sig') as file:
-                reader = csv.DictReader(file)
+                if self.client_types == 'Surveys':
+                    # Skip the first 3 lines (survey question header)
+                    for _ in range(3):
+                        next(file, None)
+                    reader = csv.DictReader(file)
+                else:
+                    reader = csv.DictReader(file)
                 if self.client_types == 'Appointments':
                     if 'Customer Name' in reader.fieldnames and 'Type' in reader.fieldnames and 'Treatment Name' in reader.fieldnames:
                         new_clients = []
