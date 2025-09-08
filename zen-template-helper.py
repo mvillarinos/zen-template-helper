@@ -12,6 +12,7 @@ from src.ui.ToastService import ToastService
 # System classes
 from src.clients.ClientAppointments import ClientAppointments
 from src.clients.ClientCustomers import ClientCustomers
+from src.clients.ClientSurveys import ClientSurveys
 
 class TemplateFiller(tk.Tk):
     def __init__(self, root, style):
@@ -138,6 +139,9 @@ class TemplateFiller(tk.Tk):
         elif self.client_types == 'Customers':
             self.render_operator_group()
             # self.render_services_group()
+        elif self.client_types == 'Surveys':
+            self.render_operator_group()
+            self.render_location_group()
 
     def render_operator_group(self):
         ttk.Label(self.dynamic_group, text="Operator:").pack(anchor=tk.W)
@@ -246,7 +250,16 @@ class TemplateFiller(tk.Tk):
                         self.clients = self.formatClients(new_clients)
                     else:
                         raise KeyError("Missing required columns in CSV")
-                
+                elif self.client_types == 'Surveys':
+                    if 'CustomerName' in reader.fieldnames and 'Phone' in reader.fieldnames:
+                        new_clients = []
+                        for row in reader:
+                            new_clients.append(row)
+                        self.clients = self.formatClients(new_clients)
+                    else:
+                        print(reader.fieldnames)
+                        raise KeyError("Missing required columns in CSV")
+                    
                 self.client_listbox.delete(0, tk.END)
                 for client in self.clients:
                     self.client_listbox.insert(tk.END, repr(client))
@@ -327,6 +340,17 @@ class TemplateFiller(tk.Tk):
                     Services=selected_services,
                     Operator=self.operator_var.get()
                 )
+            elif self.client_types == 'Surveys':
+                if not self.location_var.get():
+                    self.toast_service.show_toast('Please select a location','Warning')
+                    return
+                location =  next((location for location in self.locations if location["title"] == self.location_var.get()), None)
+                result = template['template'][self.language].format(
+                    FirstName=self.client_selected.name,
+                    Location=location['text'][self.language],
+                    Operator=self.operator_var.get()
+                )
+
             self.result_text.config(state="normal")
             self.result_text.delete(1.0, tk.END)
             self.result_text.insert(1.0, result)
@@ -458,6 +482,9 @@ class TemplateFiller(tk.Tk):
         elif self.client_types == 'Customers':
             for row in clients:
                 local_clients.append(ClientCustomers(name=row['First Name'], last_name=row['Last Name'], location=row['Location'], phone=row['Primary Phone']))
+        elif self.client_types == 'Surveys':
+            for row in clients:
+                local_clients.append(ClientSurveys(name=row['CustomerName'], phone=row['Phone'] if row['Phone'] else row['Email']))
 
         return local_clients
 

@@ -13,7 +13,7 @@
 			"es": "¡Saludos, {FirstName}! Bienvenida nuevamente a Zen Spa. 🤍 \n\n¡Muchas gracias por tomar el tiempo de completar nuestra encuesta y compartir su experiencia! Valoramos mucho sus comentarios y sugerencias. \n\nSiempre buscamos mejorar la experiencia y su feedback es escencial. Como agradecimiento, le ofrecemos un 15% de descuento en cualquier servicio regular de spa que elija. 🙌\n\nEste descuento es nuestro pequeño gesto para agradecer su apoyo y confianza. Esperamos que disfrute de este descuento y que su próxima experiencia sea aún más ZEN. \n\n¿Le gustaria que elijamos la fecha de su proxima visita? Quedo atenta. \n\n¡Que tenga un dia ZENsacional!💆🏻‍♀️\n\n{Operator}\nSpa Concierge",
 			"en": "INGLES\nINGLES\nINGLES\n Saludos, {FirstName}! Bienvenida nuevamente a Zen Spa. 🤍 \n\n¡Muchas gracias por tomar el tiempo de completar nuestra encuesta y compartir su experiencia! Valoramos mucho sus comentarios y sugerencias. \n\nSiempre buscamos mejorar la experiencia y su feedback es escencial. Como agradecimiento, le ofrecemos un 15% de descuento en cualquier servicio regular de spa que elija. 🙌\n\nEste descuento es nuestro pequeño gesto para agradecer su apoyo y confianza. Esperamos que disfrute de este descuento y que su próxima experiencia sea aún más ZEN. \n\n¿Le gustaria que elijamos la fecha de su proxima visita? Quedo atenta. \n\n¡Que tenga un dia ZENsacional!💆🏻‍♀️\n\n{Operator}\nSpa Concierge"
 		},
-		"type": "Customers"
+		"type": "Surveys"
 	},
 	{
 		"title": "Unpaid Deposit",
