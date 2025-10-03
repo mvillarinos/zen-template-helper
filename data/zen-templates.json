@@ -30,5 +30,15 @@
 			"en": "Good afternoon, welcome again to Zen Spa. 🤍\nWe received your request for {Date}, in Zen Spa {Location},for: \n {Services}\n\n We wanted to consult you if you need gel remotion or application on your hands or feet, and if you have any preferences regarding having a male or female masseuse. Let us know to confirm you the availability, and we will arrange it.\n\nHave a ZENful day! \n\n{Operator}\nSpa Concierge"
 		},
 		"type": "Appointments"
+	},
+	{
+		"title": "Temporary closed",
+		"template": {
+			"es": "Buenas tardes, . Bienvenida de nuevo a Zen Spa. 🤍\nNos comunicamos desde Zen Spa Retreat, en Sheraton Hotel, ya que nos encontramos cerrados por algunos arreglos en el lugar que se extendieron, haciendo que no podamos recibirles en la locación mañana. Le pedimos disculpas por los inconvenientes, aunque le podemos ofrecer disponibilidad en cualquiera de nuestras localidades sin costo extra o cambiar de fecha su cita. \n\nGracias por entender. Quedamos a disposición por este medio para que pueda reagendar.✨n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
+			"en": "Greetings, {FirstName}, Welcome to Zen Spa. 🤍\nWe are reaching out from Zen Spa Retreat, at Sheraton Hotel, since we are closed for arrangements on the building that got extended, making us unavailable to receive you tomorrow. We apologize for the inconvenience, although we can offer you reschedule your appointment for another location or date, without any extra costs. \n\nThank you for your understanding. You can contact us through here to reschedule or rearrange your appointment. ✨\n\nHave a ZENful day! \n\n{Operator}\nSpa Concierge"
+		},
+		"type": "Appointments"
 	}
+
+
 ]
