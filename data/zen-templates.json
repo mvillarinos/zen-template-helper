@@ -21,7 +21,7 @@
 			"es": "Saludos {FirstName}, \n\nLe deseamos un muy feliz cumpleaños. 🙌\n\n Que tenga un gran año lleno de salud, felicidad y prosperidad. \n\nPara celebrarlo le ofrecemos un descuento del 25% en los servicios que elija para usted y un acompañante en cualquier de nuestras localidades.💆‍♀✨\n\nQuedamos a disposición por este medio para programar su próxima visita.\n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
 			"en": "Greetings, {FirstName}, \n\n We are reaching out to wish you a happy birthday. 🙌\n\n Hope you have a year fulled with health, happiness and prosperity. \n\nTo celebrate we offer you a 25% discount in the services that you and one guest choose for your next visit in any of our locations. \n\nYou can book it through here with us whenever you are reay. \n\nHave a ZENful day! \n\n{Operator}\nSpa Concierge"
 		},
-		"type": "Surveys"
+		"type": "Appointments"
 	},
 	{
 		"title": "Availability",
