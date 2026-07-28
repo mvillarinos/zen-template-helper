@@ -16,9 +16,9 @@
 		"type": "Surveys"
 	},
 	{
-		"title": "Unpaid Deposit",
+		"title": "BDay Discount",
 		"template": {
-			"es": "Saludos {FirstName}, \n\nTenemos en nuestro registro que usted solicitó una cita para el dia {Date}, en {Location}, para realizarse:\n {Services} \n\n No se registra depósito pago para el mismo, si sigue interesada en visitarnos, por favor dejeme saber y le genero un link nuevo para que pueda realizar el pago del depósito. 💆‍♀✨\n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
+			"es": "Saludos {FirstName}, \n\nLe deseamos un muy feliz cumpleaños. 🙌\n\n Que tenga un gran año lleno de salud, felicidad y prosperidad. \n\nPara celebrarlo le ofrecemos un descuento del 25% en los servicios que elija para usted y un acompañante en cualquier de nuestras localidades.💆‍♀✨\n\nQuedamos a disposición por este medio para programar su próxima visita.\n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
 			"en": "Greetings, {FirstName}, \n\n We are reaching out regarding the appointment that you requested for {Date}, in {Location}, for: \n {Services}. \n\n The deposit for your services is still unpaid, please let me know if you are stil interested or if you would rather cancel or reschedule the appointment. Let me know and we will arrange it.🤗\n\nHave a ZENful day! \n\n{Operator}\nSpa Concierge"
 		},
 		"type": "Appointments"
