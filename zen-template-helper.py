@@ -9,10 +9,8 @@ import sys
 # Custom components
 from src.ui.AutoSuggestCombobox import AutoSuggestCombobox
 from src.ui.ToastService import ToastService
-# System classes
-from src.clients.ClientAppointments import ClientAppointments
-from src.clients.ClientCustomers import ClientCustomers
-from src.clients.ClientSurveys import ClientSurveys
+# Template type parser registry
+from src.parsers import get_parser
 
 class TemplateFiller(tk.Tk):
     def __init__(self, root, style):
@@ -39,7 +37,7 @@ class TemplateFiller(tk.Tk):
         self.locations = []
         self.clients = []
         self.client_selected = None
-        self.client_types = ''
+        self.template_type = ''
 
         # Automatically load templates, services and locations
         try:
@@ -133,15 +131,13 @@ class TemplateFiller(tk.Tk):
 
     def render_dynamic_groups(self):
         self.group_clear(self.dynamic_group)
-        if self.client_types == 'Appointments':
-            self.render_operator_group()
-            self.render_location_group()
-        elif self.client_types == 'Customers':
-            self.render_operator_group()
-            # self.render_services_group()
-        elif self.client_types == 'Surveys':
-            self.render_operator_group()
-            self.render_location_group()
+        if not self.template_type:
+            return
+        try:
+            parser = get_parser(self.template_type)
+        except KeyError:
+            return
+        parser.render_ui_groups(self)
 
     def render_operator_group(self):
         ttk.Label(self.dynamic_group, text="Operator:").pack(anchor=tk.W)
@@ -232,43 +228,20 @@ class TemplateFiller(tk.Tk):
     
     def load_csv(self, filename):
         try:
+            parser = get_parser(self.template_type)
+            skip_lines = getattr(parser, 'HEADER_SKIP_LINES', 0)
             with open(filename, 'r', encoding='utf-8-sig') as file:
-                if self.client_types == 'Surveys':
-                    # Skip the first 3 lines (survey question header)
-                    for _ in range(3):
-                        next(file, None)
-                    reader = csv.DictReader(file)
-                else:
-                    reader = csv.DictReader(file)
-                if self.client_types == 'Appointments':
-                    if 'Customer Name' in reader.fieldnames and 'Type' in reader.fieldnames and 'Treatment Name' in reader.fieldnames:
-                        new_clients = []
-                        for row in reader:
-                            new_clients.append(row)
-                        self.clients = self.formatClients(new_clients)
-                    else:
-                        raise KeyError("Missing required columns in CSV")
-                elif self.client_types == 'Customers':
-                    if 'First Name' in reader.fieldnames and 'Location' in reader.fieldnames:
-                        new_clients = []
-                        for row in reader:
-                            new_clients.append(row)
-                        self.clients = self.formatClients(new_clients)
-                    else:
-                        raise KeyError("Missing required columns in CSV")
-                elif self.client_types == 'Surveys':
-                    if 'CustomerName' in reader.fieldnames and 'Phone' in reader.fieldnames:
-                        new_clients = []
-                        for row in reader:
-                            new_clients.append(row)
-                        self.clients = self.formatClients(new_clients)
-                    else:
-                        print(reader.fieldnames)
-                        raise KeyError("Missing required columns in CSV")
-                    
-                self.client_listbox.delete(0, tk.END)
-                for client in self.clients:
-                    self.client_listbox.insert(tk.END, repr(client))
+                for _ in range(skip_lines):
+                    next(file, None)
+                reader = csv.DictReader(file)
+                required = parser.REQUIRED_CSV_COLUMNS
+                if not required.issubset(set(reader.fieldnames or [])):
+                    raise KeyError("Missing required columns in CSV")
+                rows = list(reader)
+            self.clients = parser.parse_csv_rows(rows)
+            self.client_listbox.delete(0, tk.END)
+            for client in self.clients:
+                self.client_listbox.insert(tk.END, repr(client))
         except Exception as e:
             raise Exception(f"Error reading CSV: {str(e)}")
     
@@ -301,7 +274,7 @@ class TemplateFiller(tk.Tk):
         if selection == -1:
             return
         template = self.templates[selection]
-        self.client_types = template['type']
+        self.template_type = template['type']
         self.clear_all_values()
         self.render_dynamic_groups()
 
@@ -317,46 +290,28 @@ class TemplateFiller(tk.Tk):
                     next_hour_combo.set(self.add_minutes_to_time(hour_combo.get(), duration))
         self.generate_text()
 
-    def generate_text(self, event=None):        
+    def generate_text(self, event=None):
         if not self.client_selected:
             return
-        template = next((template for template in self.templates if template["title"] == self.template_var.get()), None)
+        template = next((t for t in self.templates if t["title"] == self.template_var.get()), None)
         if not self.operator_var.get():
-            self.toast_service.show_toast('Please select an operator','Warning')
+            self.toast_service.show_toast('Please select an operator', 'Warning')
             return
         try:
-            if self.client_types == 'Appointments':
+            parser = get_parser(self.template_type)
+            location = None
+            if parser.needs_location():
                 if not self.location_var.get():
-                    self.toast_service.show_toast('Please select a location','Warning')
+                    self.toast_service.show_toast('Please select a location', 'Warning')
                     return
-                location =  next((location for location in self.locations if location["title"] == self.location_var.get()), None)
-                result = template['template'][self.language].format(
-                    FirstName=self.client_selected.get_formatted_names(self.language),
-                    Services=self.client_selected.get_formatted_services(self.language),
-                    Date=self.client_selected.get_date(self.language),
-                    Location=location['text'][self.language],
-                    Operator=self.operator_var.get(),
-                    Plural= 's' if self.language == 'es' and self.client_selected.get_clients_count() > 1 else ''
-                )
-            elif self.client_types == 'Customers':
-                selected_services = self.formatSelectedServices()
-                result = template['template'][self.language].format(
-                    FirstName=self.client_selected.name,
-                    Location=self.client_selected.location,
-                    Services=selected_services,
-                    Operator=self.operator_var.get()
-                )
-            elif self.client_types == 'Surveys':
-                if not self.location_var.get():
-                    self.toast_service.show_toast('Please select a location','Warning')
-                    return
-                location =  next((location for location in self.locations if location["title"] == self.location_var.get()), None)
-                result = template['template'][self.language].format(
-                    FirstName=self.client_selected.name,
-                    Location=location['text'][self.language],
-                    Operator=self.operator_var.get()
-                )
-
+                location = next((loc for loc in self.locations if loc["title"] == self.location_var.get()), None)
+            result = parser.generate_text(
+                client=self.client_selected,
+                template=template,
+                language=self.language,
+                operator=self.operator_var.get(),
+                location=location
+            )
             self.result_text.config(state="normal")
             self.result_text.delete(1.0, tk.END)
             self.result_text.insert(1.0, result)
@@ -459,40 +414,6 @@ class TemplateFiller(tk.Tk):
     def group_clear(self, group):
         for widget in group.winfo_children():
             widget.pack_forget()
-
-    def formatClients(self, clients):
-        local_clients = []
-        if self.client_types == 'Appointments':
-            for row in clients:
-                phone = row['Customer Mobile Phone'] if 'Customer Mobile Phone' in row else row['Customer Home Phone'] if 'Customer Home Phone' in row else None
-                if row['Type'] == 'Standalone':
-                    new = ClientAppointments(name=row['Customer Name'], client_type=row['Type'], phone=phone)
-                    new.add_service(row['Treatment Name'], row['Appointment On'])
-                    local_clients.append(new)
-                elif row['Type'] == 'Linked' or row['Type'] == 'Package':
-                    linked = next((c for c in local_clients if c.name == row['Customer Name']), None)
-                    if linked:
-                        linked.add_service(row['Treatment Name'], row['Appointment On'])
-                    else:
-                        new = ClientAppointments(name=row['Customer Name'], client_type=row['Type'], phone=phone)
-                        new.add_service(row['Treatment Name'], row['Appointment On'])
-                        local_clients.append(new)
-                elif row['Type'] == 'Group':
-                    grouped = next((c for c in local_clients if c.group_id == row['Group ID']), None)
-                    if grouped:
-                        grouped.add_service(row['Treatment Name'], row['Appointment On'], row['Customer Name'])
-                    else:
-                        new = ClientAppointments(name=row['Customer Name'], client_type=row['Type'], group_id=row['Group ID'], phone=phone)
-                        new.add_service(row['Treatment Name'], row['Appointment On'], row['Customer Name'])
-                        local_clients.append(new)
-        elif self.client_types == 'Customers':
-            for row in clients:
-                local_clients.append(ClientCustomers(name=row['First Name'], last_name=row['Last Name'], location=row['Location'], phone=row['Primary Phone']))
-        elif self.client_types == 'Surveys':
-            for row in clients:
-                local_clients.append(ClientSurveys(name=row['CustomerName'], phone=row['Phone'] if row['Phone'] else row['Email']))
-
-        return local_clients
 
 def main():
     root = tk.Tk()
