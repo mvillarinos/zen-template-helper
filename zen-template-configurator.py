@@ -983,14 +983,28 @@ class TemplateTypesTab(ttk.Frame):
             return
         try:
             candidate_rows = []  # list of (line_index, [col, ...])
+            preamble_done = False  # True once a blank separator line has been seen
             with open(path, newline="", encoding="utf-8-sig") as fh:
                 reader = csv.reader(fh)
                 for line_idx, row in enumerate(reader):
                     stripped = [c.strip() for c in row if c.strip()]
                     if stripped:
                         candidate_rows.append((line_idx, stripped))
-                    if len(candidate_rows) >= 15:
+                        if preamble_done:
+                            # First non-empty row after the blank separator is the
+                            # real header — stop scanning
+                            break
+                    else:
+                        if candidate_rows:
+                            # Blank line after at least one non-empty row signals
+                            # the end of the preamble section
+                            preamble_done = True
+                    if line_idx >= 20:
                         break
+            # If no blank separator was found the file is a plain CSV; only the
+            # first non-empty row is the header candidate
+            if not preamble_done and len(candidate_rows) > 1:
+                candidate_rows = candidate_rows[:1]
         except Exception as exc:
             messagebox.showerror("Scan CSV", f"Could not read file:\n{exc}")
             return
@@ -1000,11 +1014,11 @@ class TemplateTypesTab(ttk.Frame):
             return
 
         if len(candidate_rows) == 1:
-            # Only one non-empty row — use it directly
+            # Only one candidate — use it directly
             line_idx, columns = candidate_rows[0]
             self._apply_header_row(line_idx, columns)
         else:
-            # Multiple candidate rows — let the user choose the real header
+            # Multiple candidates (double-header) — let the user choose
             _HeaderRowPickerDialog(self, candidate_rows, self._on_header_row_chosen)
 
     def _on_header_row_chosen(self, line_idx, columns):
