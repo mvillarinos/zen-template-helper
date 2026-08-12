@@ -93,6 +93,9 @@ CSV_ALIASES = {
 # Required CSV columns (original names) for validation
 REQUIRED_CSV_COLUMNS = {"Customer Name", "Type", "Treatment Name"}
 
+# Number of header lines to skip before the CSV header row (none for Appointments CSVs)
+HEADER_SKIP_LINES = 0
+
 
 class AppointmentsParser:
     """

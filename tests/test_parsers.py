@@ -113,6 +113,9 @@ class TestAppointmentsParser:
     def test_required_csv_columns(self):
         assert {"Customer Name", "Type", "Treatment Name"}.issubset(AppointmentsParser.REQUIRED_CSV_COLUMNS)
 
+    def test_header_skip_lines(self):
+        assert AppointmentsParser.HEADER_SKIP_LINES == 0
+
     def test_needs_location(self):
         assert AppointmentsParser.needs_location() is True
 
@@ -151,6 +154,9 @@ class TestCustomersParser:
 
     def test_required_csv_columns(self):
         assert {"First Name", "Location"}.issubset(CustomersParser.REQUIRED_CSV_COLUMNS)
+
+    def test_header_skip_lines(self):
+        assert CustomersParser.HEADER_SKIP_LINES == 0
 
     def test_needs_location(self):
         assert CustomersParser.needs_location() is False

@@ -669,6 +669,60 @@ class _CsvColumnPickerDialog(tk.Toplevel):
         self._callback(chosen)
 
 
+# ── Header row picker dialog ───────────────────────────────────────────────────
+
+class _HeaderRowPickerDialog(tk.Toplevel):
+    """
+    When a CSV has multiple non-empty rows near the top (a 'double header'),
+    this dialog shows each candidate row and lets the user choose which one is
+    the real column-header row.  The chosen row's line index becomes the new
+    HEADER_SKIP_LINES value, and its columns are forwarded to the column picker.
+    """
+
+    def __init__(self, parent, candidate_rows, callback):
+        """
+        candidate_rows : list of (line_index, [col, ...])
+        callback       : callable(line_index, columns)
+        """
+        super().__init__(parent)
+        self.title("Select Header Row")
+        self.resizable(False, False)
+        self._callback = callback
+        self._candidates = candidate_rows
+        self._var = tk.IntVar(value=0)
+        self._build()
+        self.grab_set()
+        self.wait_window()
+
+    def _build(self):
+        f = ttk.Frame(self, padding=12)
+        f.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(f,
+                  text="Multiple non-empty rows were detected near the top of the CSV.\n"
+                       "Select which row is the real column header:",
+                  wraplength=440).pack(anchor="w", pady=(0, 10))
+
+        for i, (line_idx, cols) in enumerate(self._candidates):
+            preview = ", ".join(cols[:8])
+            if len(cols) > 8:
+                preview += f", … (+{len(cols) - 8} more)"
+            label = f"Row {line_idx + 1}:  {preview}"
+            ttk.Radiobutton(f, text=label, variable=self._var, value=i,
+                            wraplength=440).pack(anchor="w", pady=2)
+
+        bf = ttk.Frame(f)
+        bf.pack(pady=(12, 0))
+        ttk.Button(bf, text="Use selected row", command=self._confirm).pack(side=tk.LEFT)
+        ttk.Button(bf, text="Cancel", command=self.destroy).pack(side=tk.LEFT, padx=6)
+
+    def _confirm(self):
+        idx = self._var.get()
+        line_idx, columns = self._candidates[idx]
+        self.destroy()
+        self._callback(line_idx, columns)
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Tab 3: Template Types
 # ══════════════════════════════════════════════════════════════════════════════
@@ -679,6 +733,9 @@ class TemplateTypesTab(ttk.Frame):
     Changes here update the in-memory TYPE_PARAMS dict and persist to a JSON
     sidecar file (data/zen-template-types.json) so that the configurator
     remembers custom types between sessions.
+
+    JSON format: { type_name: { "params": [...], "header_skip_lines": N } }
+    Legacy format (list value) is still accepted for backward compatibility.
     """
 
     TYPES_FILE = os.path.join(DATA_DIR, "zen-template-types.json")
@@ -686,6 +743,7 @@ class TemplateTypesTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent, padding=10)
         self._types = {}   # name → list[str] of parameter names
+        self._skip_lines = {}  # name → int, header lines to skip before CSV header
         self._selected = None
         self._build()
         self._load()
@@ -734,9 +792,21 @@ class TemplateTypesTab(ttk.Frame):
         self.e_type_name = ttk.Entry(nf, textvariable=self.type_name_var, width=24)
         self.e_type_name.pack(side=tk.LEFT, padx=(6, 0))
 
+        # Header skip lines
+        sf = ttk.Frame(right)
+        sf.grid(row=1, column=0, sticky="ew", pady=(0, 6))
+        ttk.Label(sf, text="Header skip lines:").pack(side=tk.LEFT)
+        self.skip_lines_var = tk.IntVar(value=0)
+        self.e_skip_lines = ttk.Spinbox(sf, from_=0, to=99, textvariable=self.skip_lines_var,
+                                        width=5, state="disabled")
+        self.e_skip_lines.pack(side=tk.LEFT, padx=(6, 0))
+        ttk.Label(sf, text="(rows to skip before the CSV header row)",
+                  foreground="gray").pack(side=tk.LEFT, padx=(6, 0))
+
         # Parameter listbox with add/remove
         pf = ttk.Frame(right)
-        pf.grid(row=1, column=0, sticky="nsew")
+        pf.grid(row=2, column=0, sticky="nsew")
+        right.rowconfigure(2, weight=1)
         pf.rowconfigure(0, weight=1)
         pf.columnconfigure(0, weight=1)
 
@@ -748,14 +818,14 @@ class TemplateTypesTab(ttk.Frame):
         self.param_listbox["yscrollcommand"] = sb2.set
 
         pb = ttk.Frame(right)
-        pb.grid(row=2, column=0, sticky="ew", pady=(4, 0))
+        pb.grid(row=3, column=0, sticky="ew", pady=(4, 0))
         self.e_param = ttk.Entry(pb, width=20)
         self.e_param.pack(side=tk.LEFT)
         ttk.Button(pb, text="Add Param",    command=self._add_param).pack(side=tk.LEFT, padx=4)
         ttk.Button(pb, text="Remove Param", command=self._remove_param).pack(side=tk.LEFT)
 
         scan_frame = ttk.Frame(right)
-        scan_frame.grid(row=3, column=0, sticky="ew", pady=(6, 0))
+        scan_frame.grid(row=4, column=0, sticky="ew", pady=(6, 0))
         ttk.Button(scan_frame, text="📂 Scan CSV for columns…",
                    command=self._scan_csv).pack(side=tk.LEFT)
         ttk.Label(scan_frame,
@@ -763,7 +833,7 @@ class TemplateTypesTab(ttk.Frame):
                   foreground="gray").pack(side=tk.LEFT, padx=(8, 0))
 
         bf2 = ttk.Frame(right)
-        bf2.grid(row=4, column=0, pady=(10, 0), sticky="e")
+        bf2.grid(row=5, column=0, pady=(10, 0), sticky="e")
         ttk.Button(bf2, text="Save Type", command=self._save_type).pack()
 
         self._set_right_state(tk.DISABLED)
@@ -771,17 +841,43 @@ class TemplateTypesTab(ttk.Frame):
     # ── Data ──────────────────────────────────────────────────────────────────
 
     def _load(self):
-        # Start from built-in TYPE_PARAMS, then overlay persisted overrides
+        # Seed defaults from built-in TYPE_PARAMS and parser module HEADER_SKIP_LINES
+        from src.parsers import AppointmentsParser, CustomersParser, SurveysParser
+        _parser_modules = {
+            "Appointments": AppointmentsParser,
+            "Customers": CustomersParser,
+            "Surveys": SurveysParser,
+        }
         self._types = {k: list(v) for k, v in TYPE_PARAMS.items()}
+        self._skip_lines = {
+            k: getattr(_parser_modules.get(k), "HEADER_SKIP_LINES", 0)
+            for k in self._types
+        }
+        # Overlay persisted overrides; support both old list format and new dict format
         persisted = load_json(self.TYPES_FILE, {})
-        self._types.update(persisted)
+        for name, value in persisted.items():
+            if isinstance(value, list):
+                # legacy format: value is params list
+                self._types[name] = value
+            elif isinstance(value, dict):
+                self._types[name] = value.get("params", [])
+                self._skip_lines[name] = value.get(
+                    "header_skip_lines", self._skip_lines.get(name, 0)
+                )
         # Sync in-memory TYPE_PARAMS
         TYPE_PARAMS.clear()
         TYPE_PARAMS.update(self._types)
         self._refresh_list()
 
     def _save_all(self):
-        save_json(self.TYPES_FILE, self._types)
+        to_save = {
+            name: {
+                "params": params,
+                "header_skip_lines": self._skip_lines.get(name, 0),
+            }
+            for name, params in self._types.items()
+        }
+        save_json(self.TYPES_FILE, to_save)
         # Keep TYPE_PARAMS in sync so templates tab uses updated data
         TYPE_PARAMS.clear()
         TYPE_PARAMS.update(self._types)
@@ -799,7 +895,7 @@ class TemplateTypesTab(ttk.Frame):
     # ── Events ────────────────────────────────────────────────────────────────
 
     def _set_right_state(self, state):
-        for w in [self.e_type_name, self.e_param]:
+        for w in [self.e_type_name, self.e_param, self.e_skip_lines]:
             w.config(state=state)
         self.param_listbox.config(state=state)
 
@@ -809,6 +905,7 @@ class TemplateTypesTab(ttk.Frame):
             return
         self._selected = self.listbox.get(sel[0])
         self.type_name_var.set(self._selected)
+        self.skip_lines_var.set(self._skip_lines.get(self._selected, 0))
         self._refresh_param_list(self._selected)
         self._set_right_state(tk.NORMAL)
 
@@ -820,6 +917,7 @@ class TemplateTypesTab(ttk.Frame):
             messagebox.showwarning("Duplicate", f"Type '{name}' already exists.")
             return
         self._types[name] = []
+        self._skip_lines[name] = 0
         self._save_all()
         self._refresh_list()
         # Select the new entry
@@ -838,6 +936,7 @@ class TemplateTypesTab(ttk.Frame):
         if not messagebox.askyesno("Delete", f"Delete type '{name}'?"):
             return
         del self._types[name]
+        self._skip_lines.pop(name, None)
         self._save_all()
         self._refresh_list()
         self._selected = None
@@ -870,8 +969,9 @@ class TemplateTypesTab(ttk.Frame):
         self._refresh_param_list(self._selected)
 
     def _scan_csv(self):
-        """Open a CSV file, read its header columns, and let the user pick which
-        ones to add as parameters for the currently selected type."""
+        """Open a CSV file, detect potential header rows (double-header support),
+        let the user pick the real header row, then set HEADER_SKIP_LINES and
+        offer to add the columns as parameters for the currently selected type."""
         if not self._selected:
             messagebox.showinfo("Scan CSV", "Select a template type first.")
             return
@@ -882,23 +982,39 @@ class TemplateTypesTab(ttk.Frame):
         if not path:
             return
         try:
+            candidate_rows = []  # list of (line_index, [col, ...])
             with open(path, newline="", encoding="utf-8-sig") as fh:
                 reader = csv.reader(fh)
-                # Skip blank / comment lines until we find a non-empty row
-                columns = []
-                for row in reader:
+                for line_idx, row in enumerate(reader):
                     stripped = [c.strip() for c in row if c.strip()]
                     if stripped:
-                        columns = stripped
+                        candidate_rows.append((line_idx, stripped))
+                    if len(candidate_rows) >= 15:
                         break
         except Exception as exc:
             messagebox.showerror("Scan CSV", f"Could not read file:\n{exc}")
             return
 
-        if not columns:
+        if not candidate_rows:
             messagebox.showwarning("Scan CSV", "No columns found in the selected file.")
             return
 
+        if len(candidate_rows) == 1:
+            # Only one non-empty row — use it directly
+            line_idx, columns = candidate_rows[0]
+            self._apply_header_row(line_idx, columns)
+        else:
+            # Multiple candidate rows — let the user choose the real header
+            _HeaderRowPickerDialog(self, candidate_rows, self._on_header_row_chosen)
+
+    def _on_header_row_chosen(self, line_idx, columns):
+        """Called by _HeaderRowPickerDialog with the chosen row's line index and columns."""
+        self._apply_header_row(line_idx, columns)
+
+    def _apply_header_row(self, line_idx, columns):
+        """Set HEADER_SKIP_LINES to line_idx, update the spinbox, then open column picker."""
+        self._skip_lines[self._selected] = line_idx
+        self.skip_lines_var.set(line_idx)
         _CsvColumnPickerDialog(self, self._selected, columns, self._on_csv_columns_chosen)
 
     def _on_csv_columns_chosen(self, chosen):
@@ -911,12 +1027,17 @@ class TemplateTypesTab(ttk.Frame):
                 self._types[self._selected].append(col)
                 added += 1
         self._refresh_param_list(self._selected)
+        skip = self._skip_lines.get(self._selected, 0)
         if added:
             messagebox.showinfo("Scan CSV",
                                 f"Added {added} parameter(s) to '{self._selected}'.\n"
+                                f"Header skip lines set to {skip}.\n"
                                 "Click 'Save Type' to persist the changes.")
         else:
-            messagebox.showinfo("Scan CSV", "No new parameters were added (all already present).")
+            messagebox.showinfo("Scan CSV",
+                                f"No new parameters were added (all already present).\n"
+                                f"Header skip lines set to {skip}.\n"
+                                "Click 'Save Type' to persist the changes.")
 
     def _save_type(self):
         if not self._selected:
@@ -928,9 +1049,16 @@ class TemplateTypesTab(ttk.Frame):
         if new_name != self._selected and new_name in self._types:
             messagebox.showwarning("Duplicate", f"Type '{new_name}' already exists.")
             return
+        # Persist current skip-lines value from the spinbox
+        try:
+            skip = int(self.skip_lines_var.get())
+        except (ValueError, tk.TclError):
+            skip = 0
+        self._skip_lines[self._selected] = max(0, skip)
         # Rename if needed
         if new_name != self._selected:
             self._types[new_name] = self._types.pop(self._selected)
+            self._skip_lines[new_name] = self._skip_lines.pop(self._selected)
             self._selected = new_name
         self._save_all()
         self._refresh_list()

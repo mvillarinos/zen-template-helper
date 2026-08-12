@@ -6,6 +6,8 @@ import json
 import os
 import subprocess
 import sys
+
+TYPES_FILE = os.path.join("data", "zen-template-types.json")
 # Custom components
 from src.ui.AutoSuggestCombobox import AutoSuggestCombobox
 from src.ui.ToastService import ToastService
@@ -230,6 +232,15 @@ class TemplateFiller(tk.Tk):
         try:
             parser = get_parser(self.template_type)
             skip_lines = getattr(parser, 'HEADER_SKIP_LINES', 0)
+            # Override with user-configured value from zen-template-types.json if present
+            try:
+                with open(TYPES_FILE, 'r', encoding='utf-8') as tf:
+                    types_config = json.load(tf)
+                type_config = types_config.get(self.template_type, {})
+                if isinstance(type_config, dict) and "header_skip_lines" in type_config:
+                    skip_lines = type_config["header_skip_lines"]
+            except Exception:
+                pass
             with open(filename, 'r', encoding='utf-8-sig') as file:
                 for _ in range(skip_lines):
                     next(file, None)
