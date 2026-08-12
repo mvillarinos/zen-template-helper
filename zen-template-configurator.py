@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
+import csv
 import json
 import os
 import re
@@ -601,6 +602,73 @@ class TemplatesTab(ttk.Frame):
         messagebox.showinfo("Saved", "Template saved.")
 
 
+# ── CSV column picker dialog ───────────────────────────────────────────────────
+
+class _CsvColumnPickerDialog(tk.Toplevel):
+    """
+    Shows the columns found in a CSV header and lets the user tick which
+    ones to add as parameters for the current template type.
+    """
+
+    def __init__(self, parent, type_name, columns, callback):
+        super().__init__(parent)
+        self.title(f"CSV Columns — {type_name}")
+        self.resizable(False, True)
+        self._callback = callback
+        self._vars = []
+        self._build(type_name, columns)
+        self.grab_set()
+        self.wait_window()
+
+    def _build(self, type_name, columns):
+        outer = ttk.Frame(self, padding=12)
+        outer.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(outer,
+                  text=f"Select the columns to add as parameters for '{type_name}':",
+                  wraplength=360).pack(anchor="w", pady=(0, 8))
+
+        # Scrollable checkbutton list
+        canvas = tk.Canvas(outer, borderwidth=0, highlightthickness=0)
+        sb = ttk.Scrollbar(outer, orient=tk.VERTICAL, command=canvas.yview)
+        canvas.configure(yscrollcommand=sb.set)
+
+        inner = ttk.Frame(canvas)
+        canvas.create_window((0, 0), window=inner, anchor="nw")
+
+        def _on_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+            canvas.config(height=min(inner.winfo_reqheight(), 300))
+
+        inner.bind("<Configure>", _on_configure)
+
+        for col in columns:
+            var = tk.BooleanVar(value=True)
+            self._vars.append((col, var))
+            ttk.Checkbutton(inner, text=col, variable=var).pack(anchor="w")
+
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        sb.pack(side=tk.LEFT, fill=tk.Y)
+
+        # Select all / none shortcuts
+        sa_frame = ttk.Frame(outer)
+        sa_frame.pack(fill=tk.X, pady=(6, 0))
+        ttk.Button(sa_frame, text="Select all",
+                   command=lambda: [v.set(True)  for _, v in self._vars]).pack(side=tk.LEFT)
+        ttk.Button(sa_frame, text="Select none",
+                   command=lambda: [v.set(False) for _, v in self._vars]).pack(side=tk.LEFT, padx=4)
+
+        bf = ttk.Frame(outer)
+        bf.pack(fill=tk.X, pady=(10, 0))
+        ttk.Button(bf, text="Add selected", command=self._confirm).pack(side=tk.LEFT)
+        ttk.Button(bf, text="Cancel",       command=self.destroy).pack(side=tk.LEFT, padx=6)
+
+    def _confirm(self):
+        chosen = [col for col, var in self._vars if var.get()]
+        self.destroy()
+        self._callback(chosen)
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Tab 3: Template Types
 # ══════════════════════════════════════════════════════════════════════════════
@@ -686,8 +754,16 @@ class TemplateTypesTab(ttk.Frame):
         ttk.Button(pb, text="Add Param",    command=self._add_param).pack(side=tk.LEFT, padx=4)
         ttk.Button(pb, text="Remove Param", command=self._remove_param).pack(side=tk.LEFT)
 
+        scan_frame = ttk.Frame(right)
+        scan_frame.grid(row=3, column=0, sticky="ew", pady=(6, 0))
+        ttk.Button(scan_frame, text="📂 Scan CSV for columns…",
+                   command=self._scan_csv).pack(side=tk.LEFT)
+        ttk.Label(scan_frame,
+                  text="Auto-detect column names from a CSV file and add them as parameters.",
+                  foreground="gray").pack(side=tk.LEFT, padx=(8, 0))
+
         bf2 = ttk.Frame(right)
-        bf2.grid(row=3, column=0, pady=(10, 0), sticky="e")
+        bf2.grid(row=4, column=0, pady=(10, 0), sticky="e")
         ttk.Button(bf2, text="Save Type", command=self._save_type).pack()
 
         self._set_right_state(tk.DISABLED)
@@ -792,6 +868,55 @@ class TemplateTypesTab(ttk.Frame):
         p = self.param_listbox.get(sel[0])
         self._types[self._selected].remove(p)
         self._refresh_param_list(self._selected)
+
+    def _scan_csv(self):
+        """Open a CSV file, read its header columns, and let the user pick which
+        ones to add as parameters for the currently selected type."""
+        if not self._selected:
+            messagebox.showinfo("Scan CSV", "Select a template type first.")
+            return
+        path = filedialog.askopenfilename(
+            title="Select a CSV file to scan",
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+        )
+        if not path:
+            return
+        try:
+            with open(path, newline="", encoding="utf-8-sig") as fh:
+                reader = csv.reader(fh)
+                # Skip blank / comment lines until we find a non-empty row
+                columns = []
+                for row in reader:
+                    stripped = [c.strip() for c in row if c.strip()]
+                    if stripped:
+                        columns = stripped
+                        break
+        except Exception as exc:
+            messagebox.showerror("Scan CSV", f"Could not read file:\n{exc}")
+            return
+
+        if not columns:
+            messagebox.showwarning("Scan CSV", "No columns found in the selected file.")
+            return
+
+        _CsvColumnPickerDialog(self, self._selected, columns, self._on_csv_columns_chosen)
+
+    def _on_csv_columns_chosen(self, chosen):
+        """Called by _CsvColumnPickerDialog with the list of chosen column names."""
+        if not chosen or not self._selected:
+            return
+        added = 0
+        for col in chosen:
+            if col not in self._types[self._selected]:
+                self._types[self._selected].append(col)
+                added += 1
+        self._refresh_param_list(self._selected)
+        if added:
+            messagebox.showinfo("Scan CSV",
+                                f"Added {added} parameter(s) to '{self._selected}'.\n"
+                                "Click 'Save Type' to persist the changes.")
+        else:
+            messagebox.showinfo("Scan CSV", "No new parameters were added (all already present).")
 
     def _save_type(self):
         if not self._selected:
