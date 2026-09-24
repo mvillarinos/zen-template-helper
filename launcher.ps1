@@ -213,13 +213,18 @@ if ($needPython -or $needGit) {
 Write-Host "Python: OK ($($pyInfo.Major).$($pyInfo.Minor)) - Git: OK" -ForegroundColor Green
 
 # --- Conectar/actualizar el repositorio de origen (sin pedir credenciales, repo publico) ---
+# git escribe mensajes normales por stderr; con ErrorActionPreference=Stop eso cortaba el bloque aunque no hubiera error real.
+$previousEAP = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
 try {
     if (-not (Test-Path '.git')) {
         Write-Host "Conectando el proyecto con el repositorio de origen..." -ForegroundColor Cyan
         git init | Out-Null
-        git remote add origin $RepoUrl 2>$null
+        git remote add origin $RepoUrl 2>&1 | Write-Host
         git fetch origin $Branch 2>&1 | Write-Host
+        if ($LASTEXITCODE -ne 0) { throw "git fetch fallo (codigo $LASTEXITCODE)" }
         git checkout -B $Branch "origin/$Branch" 2>&1 | Write-Host
+        if ($LASTEXITCODE -ne 0) { throw "git checkout fallo (codigo $LASTEXITCODE)" }
     } else {
         $currentUrl = (git remote get-url origin 2>$null)
         if ($currentUrl -ne $RepoUrl) {
@@ -232,8 +237,12 @@ try {
     }
     Write-Host "Buscando actualizaciones..." -ForegroundColor Cyan
     git pull origin $Branch 2>&1 | Write-Host
+    if ($LASTEXITCODE -ne 0) { throw "git pull fallo (codigo $LASTEXITCODE)" }
 } catch {
     Write-Host "No se pudo actualizar el proyecto (sin conexion?). Se continua con la version local." -ForegroundColor Yellow
+    Write-Host "Detalle: $_" -ForegroundColor DarkYellow
+} finally {
+    $ErrorActionPreference = $previousEAP
 }
 
 # --- Ejecutar la aplicacion ---
