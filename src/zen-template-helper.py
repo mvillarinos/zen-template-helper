@@ -6,6 +6,12 @@ import json
 import os
 import subprocess
 import sys
+
+# El script vive en src/, la raiz del proyecto es su carpeta padre
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 # Custom components
 from src.ui.AutoSuggestCombobox import AutoSuggestCombobox
 from src.ui.ToastService import ToastService
@@ -19,7 +25,7 @@ class TemplateFiller(tk.Tk):
         self.root = root
         self.root.title("Zen Template Filler")
         self.root.geometry("800x720")
-        self.root.iconbitmap("data/zen-icon.ico")
+        self.root.iconbitmap(os.path.join(PROJECT_ROOT, "data", "zen-icon.ico"))
         
         self.language = 'es'
         self.templates = {}
@@ -43,19 +49,19 @@ class TemplateFiller(tk.Tk):
 
         # Automatically load templates, services and locations
         try:
-            self.load_templates("data/zen-templates.json")
+            self.load_templates(os.path.join(PROJECT_ROOT, "data", "zen-templates.json"))
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load templates on start: {str(e)}")
         try:
-            self.load_services("data/zen-services.json")
+            self.load_services(os.path.join(PROJECT_ROOT, "data", "zen-services.json"))
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load services on start: {str(e)}")
         try:
-            self.load_locations("data/zen-locations.json")
+            self.load_locations(os.path.join(PROJECT_ROOT, "data", "zen-locations.json"))
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load locations on start: {str(e)}")
         try:
-            self.load_operators("data/zen-operators.json")
+            self.load_operators(os.path.join(PROJECT_ROOT, "data", "zen-operators.json"))
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load operators on start: {str(e)}")
 
@@ -418,12 +424,11 @@ class TemplateFiller(tk.Tk):
     
     def get_update(self):
         try:
-            # Get the current directory and filepath of the script
+            # Get the current filepath of the script (vive en src/, el repo git esta en la raiz del proyecto)
             current_file = os.path.abspath(__file__)
-            current_dir = os.path.dirname(current_file)
             
-            # Run the "git pull" command in the current directory using Git Bash
-            subprocess.run(["git", "pull"], cwd=current_dir, check=True, shell=True)
+            # Run the "git pull" command in the project root using Git Bash
+            subprocess.run(["git", "pull"], cwd=PROJECT_ROOT, check=True, shell=True)
             
             # Relaunch the application
             pythonw = sys.executable.replace("python.exe", "pythonw.exe")
@@ -498,7 +503,7 @@ def main():
     root = tk.Tk()
     
     # Set the theme
-    root.tk.call('source', 'src/themes/Azure/azure.tcl')
+    root.tk.call('source', os.path.join(PROJECT_ROOT, "src", "themes", "Azure", "azure.tcl"))
     root.tk.call('set_theme', 'dark')
     style = ttk.Style()
     
