@@ -4,14 +4,36 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ($PSVersionTable.PSVersion.Major -lt 3) {
+    Write-Host "Se necesita PowerShell 3.0 o superior (en Windows 7 se llama 'Windows Management Framework 5.1')." -ForegroundColor Red
+    Write-Host "Buscalo en el Centro de descargas de Microsoft e instalalo, despues volve a ejecutar el launcher." -ForegroundColor Red
+    exit 1
+}
+
 Set-Location -Path $PSScriptRoot
 
+# En Windows 7/Vista no hay winget: se instala Python/Git bajando el instalador oficial directamente
+try { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 } catch { }
+
+function Test-IsLegacyOS {
+    $v = [Environment]::OSVersion.Version
+    return ($v.Major -lt 6) -or ($v.Major -eq 6 -and $v.Minor -le 1)
+}
+
+$IsLegacyOS = Test-IsLegacyOS
 $MinMajor = 3
 $MinMinor = 9
+if ($IsLegacyOS) { $MinMinor = 8 }
 $RepoUrl  = 'https://github.com/mvillarinos/zen-template-helper.git'
 $Branch   = 'main'
 $PythonWingetId = 'Python.Python.3.12'
 $GitWingetId    = 'Git.Git'
+# Version fija (Windows 7 ya no tiene instalador oficial de Python posterior a la serie 3.8)
+$LegacyPythonUrl = 'https://www.python.org/ftp/python/3.8.10/python-3.8.10-amd64.exe'
+$ModernPythonUrl = 'https://www.python.org/ftp/python/3.12.6/python-3.12.6-amd64.exe'
+# Version fija de Git para Windows para el caso sin winget (revisar de tanto en tanto si conviene actualizarla)
+$LegacyGitUrl    = 'https://github.com/git-for-windows/git/releases/download/v2.45.2.windows.1/Git-2.45.2-64-bit.exe'
 
 function Test-IsAdmin {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -66,26 +88,60 @@ function Update-AppShortcut {
     }
 }
 
+function Invoke-FileDownload {
+    param([string]$Url, [string]$Destination)
+    $webClient = New-Object Net.WebClient
+    $webClient.Headers.Add('User-Agent', 'zen-template-helper-launcher')
+    $webClient.DownloadFile($Url, $Destination)
+}
+
+function Install-LegacyPython {
+    param([bool]$IsLegacyOS)
+    $url = if ($IsLegacyOS) { $LegacyPythonUrl } else { $ModernPythonUrl }
+    $installer = Join-Path $env:TEMP 'zth-python-installer.exe'
+    Write-Host "Descargando Python..." -ForegroundColor Cyan
+    Invoke-FileDownload -Url $url -Destination $installer
+    Write-Host "Instalando Python..." -ForegroundColor Cyan
+    Start-Process -FilePath $installer -ArgumentList '/quiet', 'InstallAllUsers=1', 'PrependPath=1', 'Include_test=0' -Wait
+    Remove-Item $installer -Force -ErrorAction SilentlyContinue
+}
+
+function Install-LegacyGit {
+    $installer = Join-Path $env:TEMP 'zth-git-installer.exe'
+    Write-Host "Descargando Git..." -ForegroundColor Cyan
+    Invoke-FileDownload -Url $LegacyGitUrl -Destination $installer
+    Write-Host "Instalando Git..." -ForegroundColor Cyan
+    Start-Process -FilePath $installer -ArgumentList '/VERYSILENT', '/NORESTART', '/NOCANCEL', '/SP-' -Wait
+    Remove-Item $installer -Force -ErrorAction SilentlyContinue
+}
+
 # --- Modo elevado: solo instala lo pedido y termina (no ejecuta la app como admin) ---
 if ($InstallPython -or $InstallGit) {
-    if (-not (Test-WingetAvailable)) {
-        Write-Host "winget no esta disponible en este equipo. Instala Python y/o Git manualmente." -ForegroundColor Red
+    $useWinget = Test-WingetAvailable
+    try {
+        if ($useWinget) {
+            if ($InstallPython) {
+                Write-Host "Instalando Python..." -ForegroundColor Cyan
+                winget install -e --id $PythonWingetId --scope machine --accept-source-agreements --accept-package-agreements
+            }
+            if ($InstallGit) {
+                Write-Host "Instalando Git..." -ForegroundColor Cyan
+                winget install -e --id $GitWingetId --scope machine --accept-source-agreements --accept-package-agreements
+            }
+        } else {
+            if ($InstallPython) { Install-LegacyPython -IsLegacyOS $IsLegacyOS }
+            if ($InstallGit) { Install-LegacyGit }
+        }
+    } catch {
+        Write-Host "Fallo la instalacion: $_" -ForegroundColor Red
         exit 1
-    }
-    if ($InstallPython) {
-        Write-Host "Instalando Python..." -ForegroundColor Cyan
-        winget install -e --id $PythonWingetId --scope machine --accept-source-agreements --accept-package-agreements
-    }
-    if ($InstallGit) {
-        Write-Host "Instalando Git..." -ForegroundColor Cyan
-        winget install -e --id $GitWingetId --scope machine --accept-source-agreements --accept-package-agreements
     }
     exit 0
 }
 
 Write-Host "=== Zen Template Helper - Launcher ===" -ForegroundColor Green
 
-Update-AppShortcut -BatPath (Join-Path $PSScriptRoot 'Instalación.bat') -IconPath (Join-Path $PSScriptRoot 'data\zen-icon.ico') -ShortcutPath (Join-Path $PSScriptRoot 'Zen Template Helper.lnk')
+Update-AppShortcut -BatPath (Join-Path $PSScriptRoot 'Instalacion.bat') -IconPath (Join-Path $PSScriptRoot 'data\zen-icon.ico') -ShortcutPath (Join-Path $PSScriptRoot 'Zen Template Helper.lnk')
 
 $pyInfo = Get-PythonInfo
 $needPython = (-not $pyInfo) -or ($pyInfo.Major -lt $MinMajor) -or ($pyInfo.Major -eq $MinMajor -and $pyInfo.Minor -lt $MinMinor)
@@ -104,19 +160,30 @@ if ($needPython -or $needGit) {
         Write-Host "Instalacion cancelada. No se puede continuar sin estos componentes." -ForegroundColor Red
         exit 1
     }
-    if (-not (Test-WingetAvailable)) {
-        Write-Host "winget no esta disponible. Instala Python (python.org) y Git (git-scm.com) manualmente y volve a ejecutar el launcher." -ForegroundColor Red
-        exit 1
+
+    $useWinget = Test-WingetAvailable
+    if (-not $useWinget) {
+        Write-Host "winget no esta disponible (comun en Windows 7). Se descargaran los instaladores oficiales de Python y Git directamente." -ForegroundColor Yellow
     }
 
     if (Test-IsAdmin) {
-        if ($needPython) {
-            Write-Host "Instalando Python..." -ForegroundColor Cyan
-            winget install -e --id $PythonWingetId --scope machine --accept-source-agreements --accept-package-agreements
-        }
-        if ($needGit) {
-            Write-Host "Instalando Git..." -ForegroundColor Cyan
-            winget install -e --id $GitWingetId --scope machine --accept-source-agreements --accept-package-agreements
+        try {
+            if ($useWinget) {
+                if ($needPython) {
+                    Write-Host "Instalando Python..." -ForegroundColor Cyan
+                    winget install -e --id $PythonWingetId --scope machine --accept-source-agreements --accept-package-agreements
+                }
+                if ($needGit) {
+                    Write-Host "Instalando Git..." -ForegroundColor Cyan
+                    winget install -e --id $GitWingetId --scope machine --accept-source-agreements --accept-package-agreements
+                }
+            } else {
+                if ($needPython) { Install-LegacyPython -IsLegacyOS $IsLegacyOS }
+                if ($needGit) { Install-LegacyGit }
+            }
+        } catch {
+            Write-Host "Fallo la instalacion: $_" -ForegroundColor Red
+            exit 1
         }
     } else {
         $installArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"")
@@ -186,5 +253,19 @@ if (-not $pythonExe) {
 $pythonwExe = Join-Path (Split-Path $pythonExe -Parent) 'pythonw.exe'
 if (-not (Test-Path $pythonwExe)) { $pythonwExe = $pythonExe }
 
-Start-Process -FilePath $pythonwExe -ArgumentList '"src\zen-template-helper.py"' -WorkingDirectory $PSScriptRoot
+$logPath = Join-Path $PSScriptRoot 'launcher-app-error.log'
+if (Test-Path $logPath) { Remove-Item $logPath -Force }
+
+$proc = Start-Process -FilePath $pythonwExe -ArgumentList '"src\zen-template-helper.py"' -WorkingDirectory $PSScriptRoot -PassThru -RedirectStandardError $logPath
+Start-Sleep -Seconds 2
+
+if ($proc.HasExited -and $proc.ExitCode -ne 0) {
+    Write-Host "La aplicacion se cerro inesperadamente (codigo $($proc.ExitCode))." -ForegroundColor Red
+    if ((Test-Path $logPath) -and (Get-Item $logPath).Length -gt 0) {
+        Write-Host "--- Detalle del error ---" -ForegroundColor Yellow
+        Get-Content $logPath | Write-Host
+    }
+    exit 1
+}
+
 exit 0
