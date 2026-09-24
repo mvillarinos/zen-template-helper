@@ -143,6 +143,10 @@ Write-Host "=== Zen Template Helper - Launcher ===" -ForegroundColor Green
 
 Update-AppShortcut -BatPath (Join-Path $PSScriptRoot 'Instalacion.bat') -IconPath (Join-Path $PSScriptRoot 'data\zen-icon.ico') -ShortcutPath (Join-Path $PSScriptRoot 'Zen Template Helper.lnk')
 
+# Tambien se agrega al menu de inicio del usuario actual (no requiere permisos de administrador)
+$startMenuDir = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
+Update-AppShortcut -BatPath (Join-Path $PSScriptRoot 'Instalacion.bat') -IconPath (Join-Path $PSScriptRoot 'data\zen-icon.ico') -ShortcutPath (Join-Path $startMenuDir 'Zen Template Helper.lnk')
+
 $pyInfo = Get-PythonInfo
 $needPython = (-not $pyInfo) -or ($pyInfo.Major -lt $MinMajor) -or ($pyInfo.Major -eq $MinMajor -and $pyInfo.Minor -lt $MinMinor)
 $needGit = -not (Get-Command git -ErrorAction SilentlyContinue)
