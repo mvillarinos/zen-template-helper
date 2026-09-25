@@ -5,13 +5,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-if ($PSVersionTable.PSVersion.Major -lt 3) {
-    Write-Host "Se necesita PowerShell 3.0 o superior (en Windows 7 se llama 'Windows Management Framework 5.1')." -ForegroundColor Red
-    Write-Host "Buscalo en el Centro de descargas de Microsoft e instalalo, despues volve a ejecutar el launcher." -ForegroundColor Red
-    exit 1
-}
+# $PSScriptRoot/$PSCommandPath requieren PS3.0+; se calculan a mano para funcionar tambien con el PowerShell 2.0 de Windows 7
+$ScriptPath = $MyInvocation.MyCommand.Path
+$ScriptRoot = Split-Path -Parent $ScriptPath
 
-Set-Location -Path $PSScriptRoot
+Set-Location -Path $ScriptRoot
 
 # En Windows 7/Vista no hay winget: se instala Python/Git bajando el instalador oficial directamente
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 } catch { }
@@ -61,7 +59,7 @@ function Get-PythonInfo {
         try {
             $out = & $c.File @($c.Args) 2>&1
             if ($out -match 'Python (\d+)\.(\d+)') {
-                return [PSCustomObject]@{ Major = [int]$Matches[1]; Minor = [int]$Matches[2] }
+                return New-Object PSObject -Property @{ Major = [int]$Matches[1]; Minor = [int]$Matches[2] }
             }
         } catch { }
     }
@@ -141,11 +139,11 @@ if ($InstallPython -or $InstallGit) {
 
 Write-Host "=== Zen Template Helper - Launcher ===" -ForegroundColor Green
 
-Update-AppShortcut -BatPath (Join-Path $PSScriptRoot 'Instalacion.bat') -IconPath (Join-Path $PSScriptRoot 'data\zen-icon.ico') -ShortcutPath (Join-Path $PSScriptRoot 'Zen Template Helper.lnk')
+Update-AppShortcut -BatPath (Join-Path $ScriptRoot 'Instalacion.bat') -IconPath (Join-Path $ScriptRoot 'data\zen-icon.ico') -ShortcutPath (Join-Path $ScriptRoot 'Zen Template Helper.lnk')
 
 # Tambien se agrega al menu de inicio del usuario actual (no requiere permisos de administrador)
 $startMenuDir = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
-Update-AppShortcut -BatPath (Join-Path $PSScriptRoot 'Instalacion.bat') -IconPath (Join-Path $PSScriptRoot 'data\zen-icon.ico') -ShortcutPath (Join-Path $startMenuDir 'Zen Template Helper.lnk')
+Update-AppShortcut -BatPath (Join-Path $ScriptRoot 'Instalacion.bat') -IconPath (Join-Path $ScriptRoot 'data\zen-icon.ico') -ShortcutPath (Join-Path $startMenuDir 'Zen Template Helper.lnk')
 
 $pyInfo = Get-PythonInfo
 $needPython = (-not $pyInfo) -or ($pyInfo.Major -lt $MinMajor) -or ($pyInfo.Major -eq $MinMajor -and $pyInfo.Minor -lt $MinMinor)
@@ -190,7 +188,7 @@ if ($needPython -or $needGit) {
             exit 1
         }
     } else {
-        $installArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"")
+        $installArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$ScriptPath`"")
         if ($needPython) { $installArgs += '-InstallPython' }
         if ($needGit) { $installArgs += '-InstallGit' }
 
@@ -266,10 +264,10 @@ if (-not $pythonExe) {
 $pythonwExe = Join-Path (Split-Path $pythonExe -Parent) 'pythonw.exe'
 if (-not (Test-Path $pythonwExe)) { $pythonwExe = $pythonExe }
 
-$logPath = Join-Path $PSScriptRoot 'launcher-app-error.log'
+$logPath = Join-Path $ScriptRoot 'launcher-app-error.log'
 if (Test-Path $logPath) { Remove-Item $logPath -Force }
 
-$proc = Start-Process -FilePath $pythonwExe -ArgumentList '"src\zen-template-helper.py"' -WorkingDirectory $PSScriptRoot -PassThru -RedirectStandardError $logPath
+$proc = Start-Process -FilePath $pythonwExe -ArgumentList '"src\zen-template-helper.py"' -WorkingDirectory $ScriptRoot -PassThru -RedirectStandardError $logPath
 Start-Sleep -Seconds 2
 
 if ($proc.HasExited -and $proc.ExitCode -ne 0) {
