@@ -21,11 +21,11 @@ namespace eval ttk::theme::azure-light {
         
         array set colors {
             -fg             "#000000"
-            -bg             "#ffffff"
+            -bg             "#efeaf7"
             -disabledfg     "#737373"
-            -disabledbg     "#ffffff"
+            -disabledbg     "#efeaf7"
             -selectfg       "#ffffff"
-            -selectbg       "#007fff"
+            -selectbg       "#8b7bbd"
         }
 
         ttk::style layout TButton {
