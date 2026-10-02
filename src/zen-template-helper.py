@@ -305,7 +305,7 @@ class TemplateFiller(tk.Tk):
                     else:
                         raise KeyError("Missing required columns in CSV")
                 elif self.client_types == 'Customers':
-                    if 'First Name' in reader.fieldnames and 'Location' in reader.fieldnames:
+                    if 'First Name' in reader.fieldnames and 'Primary Phone' in reader.fieldnames:
                         new_clients = []
                         for row in reader:
                             new_clients.append(row)
@@ -400,7 +400,8 @@ class TemplateFiller(tk.Tk):
                     FirstName=self.client_selected.name,
                     Location=self.client_selected.location,
                     Services=selected_services,
-                    Operator=self.operator_var.get()
+                    Operator=self.operator_var.get(),
+                    Plural=''
                 )
             elif self.client_types == 'Surveys':
                 if not self.location_var.get():
@@ -498,6 +499,8 @@ class TemplateFiller(tk.Tk):
 
     def formatSelectedServices(self):
         selected_services = ""
+        if 'service1_combo' not in vars(self):
+            return selected_services
         for i in range(1, 5):
             service_var = getattr(self, f'service{i}_combo')
             hour_var = getattr(self, f'hour{i}_combo')
@@ -549,7 +552,7 @@ class TemplateFiller(tk.Tk):
                         local_clients.append(new)
         elif self.client_types == 'Customers':
             for row in clients:
-                local_clients.append(ClientCustomers(name=row['First Name'], last_name=row['Last Name'], location=row['Location'], phone=row['Primary Phone']))
+                local_clients.append(ClientCustomers(name=row['First Name'], last_name=row['Last Name'], location=row.get('Location', ''), phone=row['Primary Phone']))
         elif self.client_types == 'Surveys':
             for row in clients:
                 local_clients.append(ClientSurveys(name=row['CustomerName'], phone=row['Phone'] if row['Phone'] else row['Email']))

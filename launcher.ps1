@@ -239,7 +239,13 @@ try {
     }
     Write-Host "Buscando actualizaciones..." -ForegroundColor Cyan
     git pull origin $Branch 2>&1 | Write-Host
-    if ($LASTEXITCODE -ne 0) { throw "git pull fallo (codigo $LASTEXITCODE)" }
+    if ($LASTEXITCODE -ne 0) {
+        # Cambios locales que bloquean el pull: se respaldan en el stash y se reintenta
+        Write-Host "Guardando cambios locales y reintentando..." -ForegroundColor Yellow
+        git stash push -m "launcher: cambios locales antes de actualizar" 2>&1 | Write-Host
+        git pull origin $Branch 2>&1 | Write-Host
+        if ($LASTEXITCODE -ne 0) { throw "git pull fallo (codigo $LASTEXITCODE)" }
+    }
 } catch {
     Write-Host "No se pudo actualizar el proyecto (sin conexion?). Se continua con la version local." -ForegroundColor Yellow
     Write-Host "Detalle: $_" -ForegroundColor DarkYellow

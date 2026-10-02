@@ -32,13 +32,27 @@
 		"type": "Appointments"
 	},
 	{
-		"title": "BDay Discount",
+		"title": "Renovación de serie",
+		"type": "Appointments",
 		"template": {
-			"es": "Buenas tardes, {FirstName}. Bienvenida de nuevo a Zen Spa. 🤍\nNos comunicamos desde Zen Spa Retreat, en Sheraton Hotel, ya que nos encontramos cerrados por algunos arreglos en el lugar que se extendieron, haciendo que no podamos recibirles en la locación mañana. Le pedimos disculpas por los inconvenientes, aunque le podemos ofrecer disponibilidad en cualquiera de nuestras localidades sin costo extra o cambiar de fecha su cita. \n\nGracias por entender. Quedamos a disposición por este medio para que pueda reagendar.✨n\n¡Que tenga un día ZENsacional! \n\n{Operator}\nSpa Concierge",
-			"en": "Greetings, {FirstName}, Welcome to Zen Spa. 🤍\nWe are reaching out from Zen Spa Retreat, at Sheraton Hotel, since we are closed for arrangements on the building that got extended, making us unavailable to receive you tomorrow. We apologize for the inconvenience, although we can offer you reschedule your appointment for another location or date, without any extra costs. \n\nThank you for your understanding. You can contact us through here to reschedule or rearrange your appointment. ✨\n\nHave a ZENful day! \n\n{Operator}\nSpa Concierge"
-		},
-		"type": "Appointments"
-	}
-
-
-]
+			"es": "Buenas tardes, {FirstName} 💆🏻‍♀️\n\nNos comunicamos desde Zen Spa 🪷 por el paquete de tratamientos XXXX que tiene con nosotros. Queríamos recordarle que le quedan XX de sesiones antes de terminar su paquete. \nAdemás, nos interesa saber sobre su proceso y experiencia con nosotros. ¿Ha notado alguna mejora en el área afectada que quería tratar? \n\nLe esperamos pronto. Que tenga un día ZENsacional.🧘🏽‍♀️\n\n{Operator} - Spa Concierge 🌊",
+			"en": "INGLES\nINGLES\nINGLES\n\nBuenas tardes, {FirstName} 💆🏻‍♀️\n\nNos comunicamos desde Zen Spa 🪷 por el paquete de tratamientos XXXX que tiene con nosotros. Queríamos recordarle que le quedan XX de sesiones antes de terminar su paquete. \nAdemás, nos interesa saber sobre su proceso y experiencia con nosotros. ¿Ha notado alguna mejora en el área afectada que quería tratar? \n\nLe esperamos pronto. Que tenga un día ZENsacional.🧘🏽‍♀️\n{Operator} - Spa Concierge 🌊"
+		}
+	},
+	{
+		"title": "Serie expirada",
+		"type": "Appointments",
+		"template": {
+			"es": "Saludos, {FirstName}. Le damos la bienvenida a Zen Spa. 💆🏻‍♀️\n\nLe saluda {Operator}, parte del equipo de Zen Spa.\n\nNos comunicamos para hacer un seguimiento a su paquete de tratamientos. Notamos que su serie expiró recientemente, pero queremos asegurarnos de que continúe con su rutina de bienestar. \n\nComo atención especial, podemos respetar 2 de los servicios pendientes si renueva su serie y programa sus citas con nosotros a través de este chat.\n\nContamos con opciones de renovación disponibles en todas nuestras localidades, las cuales incluyen acceso a sauna, steam room y las amenidades de la localidad elegida.\n\n¿Le gustaría que le compartamos las alternativas que tenemos para que siga disfrutando de su experiencia de relajación?\n\nQuedamos a su entera disposición para enviarle más información.Le esperamos pronto. \n\n¡Que tenga un día ZENsacional! 🧘🏽‍♀️\n\n{Operator} — Spa Concierge 🌊",
+			"en": "INGLES\nINGLES\nINGLES\n\nSaludos, {FirstName}. Le damos la bienvenida a Zen Spa. 💆🏻‍♀️\n\nLe saluda {Operator}, parte del equipo de Zen Spa.\n\nNos comunicamos para hacer un seguimiento a su paquete de tratamientos. Notamos que su serie expiró recientemente, pero queremos asegurarnos de que continúe con su rutina de bienestar. \n\nComo atención especial, podemos respetar 2 de los servicios pendientes si renueva su serie y programa sus citas con nosotros a través de este chat.\n\nContamos con opciones de renovación disponibles en todas nuestras localidades, las cuales incluyen acceso a sauna, steam room y las amenidades de la localidad elegida.\n\n¿Le gustaría que le compartamos las alternativas que tenemos para que siga disfrutando de su experiencia de relajación?\n\nQuedamos a su entera disposición para enviarle más información.Le esperamos pronto. \n\n¡Que tenga un día ZENsacional! 🧘🏽‍♀️\n\n{Operator} — Spa Concierge 🌊"
+		}
+				},
+				{
+					"title": "Win-back",
+					"type": "Customers",
+					"template": {
+						"es": "¡Saludos, {FirstName}! 🤍\n\nHa pasado un tiempo desde su última visita a Zen Spa y queremos invitarle{Plural} a volver a disfrutar de la experiencia ZEN. ✨\n\nPara recibirle{Plural} nuevamente, le{Plural} ofrecemos un 15% de descuento a partir del segundo servicio que agende en cualquiera de nuestras localidades. 💆‍♀️\n\nEs una excelente oportunidad para tomarse un momento de descanso. Si desea reservar servicios adicionales, también puede hacerlo con nosotras.\n\n¿Le gustaría que revisemos disponibilidad para las próximas semanas? Quedamos a su disposición por este medio.\n\n¡Que tenga un día ZENsacional!\n\n{Operator}\nSpa Concierge",
+						"en": ""
+					}
+				}
+			]
