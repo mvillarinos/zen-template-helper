@@ -52,18 +52,18 @@ proc set_theme {mode} {
 
         array set colors {
             -fg             "#000000"
-            -bg             "#ffffff"
+            -bg             "#efeaf7"
             -disabledfg     "#737373"
-            -disabledbg     "#ffffff"
+            -disabledbg     "#efeaf7"
             -selectfg       "#ffffff"
-            -selectbg       "#007fff"
+            -selectbg       "#8b7bbd"
         }
 
 		ttk::style configure . \
             -background $colors(-bg) \
             -foreground $colors(-fg) \
             -troughcolor $colors(-bg) \
-            -focuscolor $colors(-selectbg) \
+            -focuscolor "#e08fb0" \
             -selectbackground $colors(-selectbg) \
             -selectforeground $colors(-selectfg) \
             -insertcolor $colors(-fg) \
@@ -84,6 +84,8 @@ proc set_theme {mode} {
         ttk::style map . -foreground [list disabled $colors(-disabledfg)]
 
         option add *font [ttk::style lookup . -font]
+        option add *Listbox.background "#f8f6fc"
+        option add *Text.background "#f8f6fc"
         option add *Menu.selectcolor $colors(-fg)
 	}
 }
