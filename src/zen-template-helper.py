@@ -378,6 +378,11 @@ class TemplateFiller(tk.Tk):
             self.root.tk.call("set_theme", "dark")
             self.theme_button.config(text="☽")
 
+        field_bg = '#35324a' if self.root.tk.call('ttk::style', 'theme', 'use') == 'azure-dark' else '#f8f6fc'
+        field_fg = ttk.Style().lookup('.', 'foreground')
+        self.client_listbox.config(background=field_bg, foreground=field_fg)
+        self.result_text.config(background=field_bg, foreground=field_fg)
+
     def change_language(self):
         if self.language == 'es':
             self.language = 'en'
