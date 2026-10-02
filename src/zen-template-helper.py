@@ -442,6 +442,8 @@ class TemplateFiller(tk.Tk):
 
     def formatSelectedServices(self):
         selected_services = ""
+        if 'service1_combo' not in vars(self):
+            return selected_services
         for i in range(1, 5):
             service_var = getattr(self, f'service{i}_combo')
             hour_var = getattr(self, f'hour{i}_combo')
