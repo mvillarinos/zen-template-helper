@@ -433,6 +433,7 @@ class TemplateFiller(tk.Tk):
         field_fg = ttk.Style().lookup('.', 'foreground')
         self.client_listbox.config(background=field_bg, foreground=field_fg)
         self.result_text.config(background=field_bg, foreground=field_fg)
+        self._repaint_combobox_popdowns(self.root, field_bg, field_fg)
 
     def change_language(self):
         if self.language == 'es':
@@ -478,6 +479,15 @@ class TemplateFiller(tk.Tk):
             self.root.clipboard_clear()
             self.root.clipboard_append(self.client_selected.phone)
     
+    def _repaint_combobox_popdowns(self, widget, bg, fg):
+        for child in widget.winfo_children():
+            if isinstance(child, ttk.Combobox):
+                try:
+                    self.root.tk.call(f'{child}.popdown.f.l', 'configure', '-background', bg, '-foreground', fg)
+                except tk.TclError:
+                    pass  # el popdown se crea recien al abrir la lista por primera vez
+            self._repaint_combobox_popdowns(child, bg, fg)
+
     def get_update(self):
         try:
             # Get the current filepath of the script (vive en src/, el repo git esta en la raiz del proyecto)
