@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import csv
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -19,6 +20,55 @@ from src.ui.ToastService import ToastService
 from src.clients.ClientAppointments import ClientAppointments
 from src.clients.ClientCustomers import ClientCustomers
 from src.clients.ClientSurveys import ClientSurveys
+
+def _run_git(args, cwd):
+    flags = 0x08000000 if os.name == 'nt' else 0  # CREATE_NO_WINDOW
+    result = subprocess.run(["git", "-c", "core.quotepath=false"] + args, cwd=cwd, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, encoding='utf-8', errors='replace', creationflags=flags)
+    return result.returncode, result.stdout.rstrip()
+
+def _restore_local_changes(root):
+    code, out = _run_git(["stash", "pop"], root)
+    if code != 0:
+        # Deja el arbol limpio; los cambios siguen guardados en el stash y en la carpeta de respaldo
+        _run_git(["reset", "--hard", "HEAD"], root)
+        return False
+    return True
+
+def update_repository(root):
+    """Actualiza el repositorio sin perder cambios locales. Devuelve (ok, mensaje)."""
+    code, out = _run_git(["status", "--porcelain", "--untracked-files=no"], root)
+    if code != 0:
+        return False, f"No se pudo leer el estado del repositorio:\n\n{out}"
+    changed = [line[3:].split(" -> ")[-1].strip().strip('"') for line in out.splitlines() if line.strip()]
+
+    stashed = False
+    backup_dir = None
+    if changed:
+        backup_dir = os.path.join(root, "update-backup", datetime.now().strftime("%Y%m%d-%H%M%S"))
+        for rel in changed:
+            src = os.path.join(root, rel)
+            if os.path.isfile(src):
+                dst = os.path.join(backup_dir, rel)
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                shutil.copy2(src, dst)
+        code, out = _run_git(["stash", "push", "-m", "zen-helper: cambios locales antes de actualizar"], root)
+        if code != 0:
+            return False, f"No se pudieron guardar tus cambios locales, así que no se actualizó nada.\n\n{out}"
+        stashed = True
+
+    code, out = _run_git(["pull", "--no-edit"], root)
+    if code != 0:
+        _run_git(["merge", "--abort"], root)
+        note = ""
+        if stashed and not _restore_local_changes(root):
+            note = f"\n\nTus archivos modificados quedaron respaldados en:\n{backup_dir}"
+        return False, f"No se pudo actualizar:\n\n{out}{note}"
+
+    if stashed and not _restore_local_changes(root):
+        return True, ("Se actualizó a la versión nueva, pero tus cambios locales no se pudieron combinar con ella.\n\n"
+                      f"Tus archivos anteriores quedaron respaldados en:\n{backup_dir}")
+    return True, ""
 
 class TemplateFiller(tk.Tk):
     def __init__(self, root, style):
@@ -432,14 +482,16 @@ class TemplateFiller(tk.Tk):
             # Get the current filepath of the script (vive en src/, el repo git esta en la raiz del proyecto)
             current_file = os.path.abspath(__file__)
             
-            # Run the "git pull" command in the project root using Git Bash
-            subprocess.run(["git", "pull"], cwd=PROJECT_ROOT, check=True, shell=True)
+            ok, message = update_repository(PROJECT_ROOT)
+            if not ok:
+                messagebox.showerror("Error", message)
+                return
+            if message:
+                messagebox.showinfo("Actualización", message)
             
             # Relaunch the application
             pythonw = sys.executable.replace("python.exe", "pythonw.exe")
             os.execl(pythonw, pythonw, f'"{current_file}"', *sys.argv[1:])
-        except subprocess.CalledProcessError as e:
-            messagebox.showerror("Error", f"Failed to update repository: {e}")
         except Exception as e:
             messagebox.showerror("Error", f"An unexpected error occurred: {e}")
 
