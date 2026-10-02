@@ -219,13 +219,28 @@ Write-Host "Python: OK ($($pyInfo.Major).$($pyInfo.Minor)) - Git: OK" -Foregroun
 $previousEAP = $ErrorActionPreference
 $ErrorActionPreference = 'Continue'
 try {
-    if (-not (Test-Path '.git')) {
+    $hasRepo = Test-Path '.git'
+    if ($hasRepo) { git rev-parse --verify HEAD 2>&1 | Out-Null; $hasRepo = ($LASTEXITCODE -eq 0) }
+    if (-not $hasRepo) {
         Write-Host "Conectando el proyecto con el repositorio de origen..." -ForegroundColor Cyan
-        git init | Out-Null
-        git remote add origin $RepoUrl 2>&1 | Write-Host
+        if (-not (Test-Path '.git')) { git init | Out-Null }
+        if (-not (git remote get-url origin 2>$null)) { git remote add origin $RepoUrl 2>&1 | Write-Host }
         git fetch origin $Branch 2>&1 | Write-Host
         if ($LASTEXITCODE -ne 0) { throw "git fetch fallo (codigo $LASTEXITCODE)" }
-        git checkout -B $Branch "origin/$Branch" 2>&1 | Write-Host
+        # Respalda los archivos locales que difieren de la version publicada antes de reemplazarlos
+        $backupDir = Join-Path $PWD ("update-backup\" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
+        foreach ($f in (git ls-tree -r --name-only "origin/$Branch")) {
+            if (Test-Path -LiteralPath $f -PathType Leaf) {
+                $localHash = (git hash-object -- $f)
+                $remoteHash = (git rev-parse "origin/${Branch}:$f")
+                if ($localHash -ne $remoteHash) {
+                    $dest = Join-Path $backupDir $f
+                    New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
+                    Copy-Item -LiteralPath $f -Destination $dest
+                }
+            }
+        }
+        git checkout -f -B $Branch "origin/$Branch" 2>&1 | Write-Host
         if ($LASTEXITCODE -ne 0) { throw "git checkout fallo (codigo $LASTEXITCODE)" }
     } else {
         $currentUrl = (git remote get-url origin 2>$null)
