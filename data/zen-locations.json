@@ -1,5 +1,12 @@
 [
 	{
+		"title": "Zen Spa Condado",
+		"text": {
+			"es": "Zen Spa Condado",
+			"en": "Zen Spa Condado"
+		}
+	},
+	{
 		"title": "Zen Spa Guaynabo",
 		"text": {
 			"es": "Zen Spa Guaynabo",
@@ -7,31 +14,31 @@
 		}
 	},
 	{
-		"title": "Zen Spa Garden, at the Hilton Garden Inn",
+		"title": "Zen Spa Garden, in Hilton Garden Inn",
 		"text": {
 			"es": "Zen Spa Garden, en Hilton Garden Inn",
-			"en": "Zen Spa Garden, at the Hilton Garden Inn"
+			"en": "Zen Spa Garden, in Hilton Garden Inn"
 		}
 	},
 	{
-		"title": "Zen Spa Brisas, at the Royal Sonesta Hotel",
+		"title": "Zen Spa Brisas, in Royal Sonesta Hotel",
 		"text": {
 			"es": "Zen Spa Brisas, en Royal Sonesta Hotel",
-			"en": "Zen Spa Brisas, at the Royal Sonesta Hotel"
+			"en": "Zen Spa Brisas, in Royal Sonesta Hotel"
 		}
 	},
 	{
-		"title": "Zen Spa Océano, at the Caribe Hilton Hotel",
+		"title": "Zen Spa Océano, in Caribe Hilton Hotel",
 		"text": {
 			"es": "Zen Spa Océano, en Caribe Hilton Hotel",
-			"en": "Zen Spa Oceano, at the Caribe Hilton Hotel"
+			"en": "Zen Spa Oceano, in Caribe Hilton Hotel"
 		}
 	},
 	{
-		"title": "Zen Spa Retreat, at the Sheraton Hotel",
+		"title": "Zen Spa Retreat, in Sheraton Hotel",
 		"text": {
 			"es": "Zen Spa Retreat, en Sheraton Hotel",
-			"en": "Zen Spa Retreat, at the Sheraton Hotel"
+			"en": "Zen Spa Retreat, in Sheraton Hotel"
 		}
 	}
 ]

@@ -23,9 +23,9 @@ namespace eval ttk::theme::azure-dark {
             -fg             "#ffffff"
             -bg             "#333333"
             -disabledfg     "#aaaaaa"
-            -disabledbg     "#9585b8"
+            -disabledbg     "#737373"
             -selectfg       "#ffffff"
-            -selectbg       "#a99cc8"
+            -selectbg       "#007fff"
         }
 
         ttk::style layout TButton {

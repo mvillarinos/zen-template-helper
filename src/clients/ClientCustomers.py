@@ -7,5 +7,4 @@ class ClientCustomers:
 
     def __repr__(self):
         # Return a string representation of the ClientCustomers object.
-        location = f" ({self.location})" if self.location else ""
-        return f"{self.name} {self.last_name}{location}"
+        return f"{self.name} {self.last_name} ({self.location})"
