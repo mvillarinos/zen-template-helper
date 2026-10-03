@@ -51,7 +51,7 @@
 					"title": "Win-back",
 					"type": "Customers",
 					"template": {
-						"es": "¡Saludos, {FirstName}! 🤍\n\nHa pasado un tiempo desde su última visita a Zen Spa y queremos invitarle{Plural} a volver a disfrutar de la experiencia ZEN. ✨\n\nPara recibirle{Plural} nuevamente, le{Plural} ofrecemos un 15% de descuento a partir del segundo servicio que agende en cualquiera de nuestras localidades. 💆‍♀️\n\nEs una excelente oportunidad para tomarse un momento de descanso. Si desea reservar servicios adicionales, también puede hacerlo con nosotras.\n\n¿Le gustaría que revisemos disponibilidad para las próximas semanas? Quedamos a su disposición por este medio.\n\n¡Que tenga un día ZENsacional!\n\n{Operator}\nSpa Concierge",
+						"es": "¡Saludos, {FirstName}! 🤍\n\nHa pasado un tiempo desde su última visita a Zen Spa y queremos invitarle{Plural} a volver a disfrutar de la experiencia ZEN. ✨\n\nPara recibirle{Plural} nuevamente, le{Plural} ofrecemos hasta un 25% de descuento a partir del segundo servicio que agende en cualquiera de nuestras localidades. 💆‍♀️\n\nEs una excelente oportunidad para tomarse un momento de descanso. Si desea reservar servicios adicionales, también puede hacerlo con nosotras.\n\n¿Le gustaría que revisemos disponibilidad para las próximas semanas? Quedamos a su disposición por este medio.\n\n¡Que tenga un día ZENsacional!\n\n{Operator}\nSpa Concierge",
 						"en": ""
 					}
 				}
