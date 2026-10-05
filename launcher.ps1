@@ -271,24 +271,43 @@ try {
 # --- Ejecutar la aplicacion ---
 Write-Host "Iniciando Zen Template Helper..." -ForegroundColor Green
 
+# Candidatos en orden de preferencia: cada uno es @{ File; Args }. Se prueba el primero que se pueda iniciar.
+$candidates = @()
 $pythonExe = $null
-try { $pythonExe = & py -3 -c "import sys; print(sys.executable)" 2>$null } catch { }
-if (-not $pythonExe) {
-    $cmd = Get-Command python -ErrorAction SilentlyContinue
-    if ($cmd) { $pythonExe = $cmd.Source }
+try { $pythonExe = (& py -3 -c "import sys; print(sys.executable)" 2>$null | Select-Object -First 1) } catch { }
+if ($pythonExe -and (Test-Path -LiteralPath $pythonExe)) {
+    $pyw = Join-Path (Split-Path $pythonExe -Parent) 'pythonw.exe'
+    if (Test-Path -LiteralPath $pyw) { $candidates += @{ File = $pyw; Args = @('src\zen-template-helper.py') } }
+    $candidates += @{ File = $pythonExe; Args = @('src\zen-template-helper.py') }
 }
-if (-not $pythonExe) {
+foreach ($name in 'pyw', 'pythonw', 'python', 'py') {
+    $cmd = Get-Command $name -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($cmd) {
+        $extra = @(); if ($name -in 'py', 'pyw') { $extra = @('-3') }
+        $candidates += @{ File = $cmd.Source; Args = $extra + @('src\zen-template-helper.py') }
+    }
+}
+if ($candidates.Count -eq 0) {
     Write-Host "No se encontro el ejecutable de Python." -ForegroundColor Red
     exit 1
 }
 
-$pythonwExe = Join-Path (Split-Path $pythonExe -Parent) 'pythonw.exe'
-if (-not (Test-Path $pythonwExe)) { $pythonwExe = $pythonExe }
-
 $logPath = Join-Path $ScriptRoot 'launcher-app-error.log'
 if (Test-Path $logPath) { Remove-Item $logPath -Force }
 
-$proc = Start-Process -FilePath $pythonwExe -ArgumentList '"src\zen-template-helper.py"' -WorkingDirectory $ScriptRoot -PassThru -RedirectStandardError $logPath
+$proc = $null
+foreach ($cand in $candidates) {
+    try {
+        $proc = Start-Process -FilePath $cand.File -ArgumentList $cand.Args -WorkingDirectory $ScriptRoot -WindowStyle Hidden -PassThru -RedirectStandardError $logPath -ErrorAction Stop
+        break
+    } catch {
+        Write-Host "No se pudo iniciar con $($cand.File): $($_.Exception.Message)" -ForegroundColor DarkYellow
+    }
+}
+if (-not $proc) {
+    Write-Host "No se pudo iniciar la aplicacion con ninguna instalacion de Python." -ForegroundColor Red
+    exit 1
+}
 Start-Sleep -Seconds 2
 
 if ($proc.HasExited -and $proc.ExitCode -ne 0) {
