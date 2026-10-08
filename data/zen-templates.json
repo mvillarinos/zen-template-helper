@@ -56,7 +56,7 @@
 					}
 				},
 				{
-					"title": "Serie por vencer",
+					"title": "Serie con servicios pendientes",
 					"type": "Series",
 					"template": {
 						"es": "Hola, {FirstName}. 🤍\n\nMi nombre es {Operator} y seré su contacto personal como Spa Concierge de ZEN SPA. 🙌🏼\n\nEl bienestar también se construye con pequeños espacios para bajar el ritmo, liberar tensión y recargar.\n\nQueremos ayudarle a mantener ese cuidado como parte de su rutina.\n\n¿Le ayudo a coordinar su próxima visita utilizando uno de los servicios de su Serie? 😊",
