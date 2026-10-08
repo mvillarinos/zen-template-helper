@@ -415,8 +415,6 @@ class TemplateFiller(tk.Tk):
             elif self.client_types == 'Series':
                 result = template['template'][self.language].format(
                     FirstName=self.client_selected.name,
-                    Series=self.client_selected.series_name,
-                    ExpirationDate=self.client_selected.get_expiration_text(),
                     Operator=self.operator_var.get(),
                     Plural=''
                 )
@@ -581,8 +579,14 @@ class TemplateFiller(tk.Tk):
             for row in clients:
                 local_clients.append(ClientCustomers(name=row['First Name'], last_name=row['Last Name'], location=row.get('Location', ''), phone=row['Primary Phone']))
         elif self.client_types == 'Series':
+            seen_series_clients = set()
             for row in clients:
-                local_clients.append(ClientSeries(name=row['aCustomerFname'], last_name=row['aCustomerLname'], phone=row['HomePhone'].strip(), series_name=row['ItemName'], expiration_date=row['ExpirationDate']))
+                client = ClientSeries(name=row['aCustomerFname'], last_name=row['aCustomerLname'], phone=row['HomePhone'].strip())
+                # Un cliente con varias series se contacta una sola vez
+                key = (client.name.lower(), client.last_name.lower(), client.phone)
+                if key not in seen_series_clients:
+                    seen_series_clients.add(key)
+                    local_clients.append(client)
         elif self.client_types == 'Surveys':
             for row in clients:
                 local_clients.append(ClientSurveys(name=row['CustomerName'], phone=row['Phone'] if row['Phone'] else row['Email']))
