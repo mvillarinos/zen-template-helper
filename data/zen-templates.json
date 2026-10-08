@@ -54,5 +54,13 @@
 						"es": "¡Saludos, {FirstName}! 🤍\n\nHa pasado un tiempo desde su última visita a Zen Spa y queremos invitarle{Plural} a volver a disfrutar de la experiencia ZEN. ✨\n\nPara recibirle{Plural} nuevamente, le{Plural} ofrecemos hasta un 25% de descuento en los servicios que agende en cualquiera de nuestras localidades. 💆‍♀️\n\nEs una excelente oportunidad para tomarse un momento de descanso. Si desea reservar servicios adicionales, también puede hacerlo con nosotras.\n\n¿Le gustaría que revisemos disponibilidad para las próximas semanas? Quedamos a su disposición por este medio.\n\n¡Que tenga un día ZENsacional!\n\n{Operator}\nSpa Concierge",
 						"en": ""
 					}
+				},
+				{
+					"title": "Serie por vencer",
+					"type": "Series",
+					"template": {
+						"es": "¡Saludos, {FirstName}! 🤍\n\nLe escribimos desde Zen Spa para recordarle que su serie {Series} vence el {ExpirationDate} y todavía tiene servicios pendientes por disfrutar. 💆‍♀️\n\nNos encantaría ayudarle a programar sus próximas citas para que aproveche cada uno de ellos a tiempo.\n\n¿Le gustaría que revisemos disponibilidad? Quedamos a su disposición por este medio.\n\n¡Que tenga un día ZENsacional!\n\n{Operator}\nSpa Concierge",
+						"en": ""
+					}
 				}
 			]

@@ -20,6 +20,7 @@ from src.ui.ToastService import ToastService
 from src.clients.ClientAppointments import ClientAppointments
 from src.clients.ClientCustomers import ClientCustomers
 from src.clients.ClientSurveys import ClientSurveys
+from src.clients.ClientSeries import ClientSeries
 
 def _run_git(args, cwd):
     flags = 0x08000000 if os.name == 'nt' else 0  # CREATE_NO_WINDOW
@@ -198,6 +199,8 @@ class TemplateFiller(tk.Tk):
         elif self.client_types == 'Surveys':
             self.render_operator_group()
             self.render_location_group()
+        elif self.client_types == 'Series':
+            self.render_operator_group()
 
     def render_operator_group(self):
         ttk.Label(self.dynamic_group, text="Operator:").pack(anchor=tk.W)
@@ -289,8 +292,8 @@ class TemplateFiller(tk.Tk):
     def load_csv(self, filename):
         try:
             with open(filename, 'r', encoding='utf-8-sig') as file:
-                if self.client_types == 'Surveys':
-                    # Skip the first 3 lines (survey question header)
+                if self.client_types in ('Surveys', 'Series'):
+                    # Skip the first 3 lines (report header)
                     for _ in range(3):
                         next(file, None)
                     reader = csv.DictReader(file)
@@ -312,6 +315,12 @@ class TemplateFiller(tk.Tk):
                         self.clients = self.formatClients(new_clients)
                     else:
                         raise KeyError("Missing required columns in CSV")
+                elif self.client_types == 'Series':
+                    required = {'aCustomerFname', 'aCustomerLname', 'HomePhone', 'ItemName', 'ExpirationDate'}
+                    if reader.fieldnames and required.issubset(set(reader.fieldnames)):
+                        self.clients = self.formatClients(list(reader))
+                    else:
+                        raise KeyError('Missing required columns in CSV')
                 elif self.client_types == 'Surveys':
                     if 'CustomerName' in reader.fieldnames and 'Phone' in reader.fieldnames:
                         new_clients = []
@@ -400,6 +409,14 @@ class TemplateFiller(tk.Tk):
                     FirstName=self.client_selected.name,
                     Location=self.client_selected.location,
                     Services=selected_services,
+                    Operator=self.operator_var.get(),
+                    Plural=''
+                )
+            elif self.client_types == 'Series':
+                result = template['template'][self.language].format(
+                    FirstName=self.client_selected.name,
+                    Series=self.client_selected.series_name,
+                    ExpirationDate=self.client_selected.get_expiration_text(),
                     Operator=self.operator_var.get(),
                     Plural=''
                 )
@@ -563,6 +580,9 @@ class TemplateFiller(tk.Tk):
         elif self.client_types == 'Customers':
             for row in clients:
                 local_clients.append(ClientCustomers(name=row['First Name'], last_name=row['Last Name'], location=row.get('Location', ''), phone=row['Primary Phone']))
+        elif self.client_types == 'Series':
+            for row in clients:
+                local_clients.append(ClientSeries(name=row['aCustomerFname'], last_name=row['aCustomerLname'], phone=row['HomePhone'].strip(), series_name=row['ItemName'], expiration_date=row['ExpirationDate']))
         elif self.client_types == 'Surveys':
             for row in clients:
                 local_clients.append(ClientSurveys(name=row['CustomerName'], phone=row['Phone'] if row['Phone'] else row['Email']))
