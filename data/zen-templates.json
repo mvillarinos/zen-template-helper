@@ -59,7 +59,7 @@
 					"title": "Serie por vencer",
 					"type": "Series",
 					"template": {
-						"es": "¡Saludos, {FirstName}! 🤍\n\nLe escribimos desde Zen Spa para recordarle que su serie {Series} vence el {ExpirationDate} y todavía tiene servicios pendientes por disfrutar. 💆‍♀️\n\nNos encantaría ayudarle a programar sus próximas citas para que aproveche cada uno de ellos a tiempo.\n\n¿Le gustaría que revisemos disponibilidad? Quedamos a su disposición por este medio.\n\n¡Que tenga un día ZENsacional!\n\n{Operator}\nSpa Concierge",
+						"es": "Hola, {FirstName}. 🤍\n\nMi nombre es {Operator} y seré su contacto personal como Spa Concierge de ZEN SPA. 🙌🏼\n\nEl bienestar también se construye con pequeños espacios para bajar el ritmo, liberar tensión y recargar.\n\nQueremos ayudarle a mantener ese cuidado como parte de su rutina.\n\n¿Le ayudo a coordinar su próxima visita utilizando uno de los servicios de su Serie? 😊",
 						"en": ""
 					}
 				}
